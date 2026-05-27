@@ -71,11 +71,10 @@ export async function createPR(ui, draft) {
     };
 
     // Upload images
-    const defaultLocale = window.DEFAULT_LOCALE || 'en';
-    await uploadDraftImages(ui, draft, slug, branchName, defaultLocale, getSha);
+    await uploadDraftImages(ui, draft, slug, branchName, getSha);
 
-    // Main post
-    const mainPostPath = `content/${defaultLocale}/blog/${slug}/${slug}.md`;
+    // Main post — lands in the Metalsmith starter's blog source directory.
+    const mainPostPath = `src/blog/${slug}.md`;
     const existingMainPostSha = await getSha(mainPostPath);
     await ghFetch(ui, `/contents/${mainPostPath}`, {
       method: 'PUT',

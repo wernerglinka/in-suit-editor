@@ -7,10 +7,12 @@
       {% if pageFiles and pageFiles.length > 0 %} {% for blogPost in pageFiles %}
       <li>
         <a href="{{ blogPost.path }}">
-          <h2>{{ blogPost.post.title }}</h2>
-          <time datetime="{{ blogPost.post.date }}">{{ blogPost.post.date | blogDate }}</time>
-          <img class="blog-image" src="{{ blogPost.post.image }}" alt="{{ blogPost.post.title }}" />
-          <div>{{ blogPost.post.excerpt }}</div>
+          <h2>{{ blogPost.title }}</h2>
+          <time datetime="{{ blogPost.date }}">{{ blogPost.date | blogDate }}</time>
+          {% if blogPost.image %}
+          <img class="blog-image" src="{{ blogPost.image }}" alt="{{ blogPost.title }}" />
+          {% endif %}
+          <div>{{ blogPost.excerpt or blogPost.description }}</div>
         </a>
       </li>
       {% endfor %} {% else %}
@@ -23,10 +25,10 @@
       <ul>
         {% for post in featuredBlogPosts %}
         <li>
-          <p>{{post.date | blogDate}}</p>
-          <a href="/{{post.path}}">{{post.title}}</a>
+          <p>{{ post.date | blogDate }}</p>
+          <a href="/{{ post.path }}">{{ post.title }}</a>
         </li>
-        {% endfor%}
+        {% endfor %}
       </ul>
     </aside>
   </div>

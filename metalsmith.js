@@ -158,11 +158,23 @@ metalsmith
    * Create paginated blog pages
    * Learn more: https://github.com/wernerglinka/metalsmith-simple-pagination
    */
+  // Blog posts created by the admin editor land at src/blog/<slug>.md with
+  // flat top-level frontmatter (title/date/description/tags) and no layout
+  // field. Default them to blog-post.njk before @metalsmith/layouts runs.
+  .use( ( files, ms, done ) => {
+    for ( const filename of Object.keys( files ) ) {
+      if ( filename.startsWith( 'blog/' ) && filename.endsWith( '.md' ) && !files[ filename ].layout ) {
+        files[ filename ].layout = 'blog-post.njk';
+      }
+    }
+    done();
+  } )
+
   .use(
     simplePagination( {
       directory: 'blog', // Directory containing blog posts
       perPage: 2, // Number of posts per page
-      sortBy: 'post.date', // Sort posts by date
+      sortBy: 'date', // Sort posts by date
       reverse: true, // Newest posts first
       outputDir: 'blog/:num', // Output pattern for pagination pages
       indexLayout: 'blog.njk', // Template for blog index pages
@@ -181,8 +193,7 @@ metalsmith
       featuredQuantity: 2, // Number of posts in featured list
       featuredPostOrder: 'desc', // Sort order for featured posts
       fileExtension: '.md', // File extension for blog posts
-      blogDirectory: './blog', // Directory containing blog posts
-      blogObject: 'post' // Object name for blog post metadata
+      blogDirectory: './blog' // Directory containing blog posts
     } )
   )
 

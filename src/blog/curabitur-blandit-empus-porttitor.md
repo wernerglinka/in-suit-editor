@@ -1,24 +1,21 @@
 ---
 layout: blog-post.njk
-bodyClass: "blog-post"
+bodyClass: blog-post
 draft: false
-
+title: Curabitur blandit tempus porttitor.
+description: "Cum sociis natoque penatibus et magnis dis parturient montes, nascetur ridiculus mus. Donec ullamcorper nulla non metus auctor fringilla."
+date: "2022-01-07T12:00:00Z"
+authors: []
+tags: []
+image: /assets/images/blog-images/blog5.jpg
+excerpt: "Cum sociis natoque penatibus et magnis dis parturient montes, nascetur ridiculus mus. Cras justo odio, dapibus ac facilisis in, egestas eget quam. Donec id elit non mi porta gravida at eget metus."
+featuredBlogpost: true
+featuredBlogpostOrder: 1
 seo:
   title: Curabitur blandit tempus porttitor.
   description: "Cum sociis natoque penatibus et magnis dis parturient montes, nascetur ridiculus mus. Donec ullamcorper nulla non metus auctor fringilla."
   socialImage: "https://res.cloudinary.com/glinkaco/image/upload/v1646849499/tgc2022/social_yitz6j.png"
   canonicalOverwrite: ""
-
-post:
-  title: "Curabitur blandit tempus porttitor."
-  date: "2022-01-07T12:00:00Z"
-  author: ""
-  image: "/assets/images/blog-images/blog5.jpg"
-  featuredBlogpost: true
-  featuredBlogpostOrder: 1
-  excerpt: |-
-    Cum sociis natoque penatibus et magnis dis parturient montes, nascetur ridiculus mus. Cras justo odio, dapibus ac facilisis in, egestas eget quam. Donec id elit non mi porta gravida at eget metus.
-
 ---
 
 Cras justo odio, dapibus ac facilisis in, egestas eget quam. Morbi leo risus, porta ac consectetur ac, vestibulum at eros. Aenean lacinia bibendum nulla sed consectetur. Integer posuere erat a ante venenatis dapibus posuere velit aliquet. Nulla vitae elit libero, a pharetra augue. Aenean lacinia bibendum nulla sed consectetur. Maecenas faucibus mollis interdum.

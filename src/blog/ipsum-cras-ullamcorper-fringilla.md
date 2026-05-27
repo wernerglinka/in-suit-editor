@@ -1,23 +1,21 @@
 ---
 layout: blog-post.njk
-bodyClass: "blog-post"
+bodyClass: blog-post
 draft: false
-
+title: Ipsum Cras Ullamcorper Fringilla
+description: Etiam porta sem malesuada magna mollis euismod.
+date: "2020-05-10T12:00:00Z"
+authors: []
+tags: []
+image: /assets/images/blog-images/blog4.jpg
+excerpt: "Morbi leo risus, porta ac consectetur ac, vestibulum at eros. Donec id elit non mi porta gravida at eget metus. Maecenas faucibus mollis interdum. Vivamus sagittis lacus vel augue laoreet rutrum faucibus dolor auctor."
+featuredBlogpost: true
+featuredBlogpostOrder: 1
 seo:
   title: Ipsum Cras Ullamcorper Fringilla
-  description: "Etiam porta sem malesuada magna mollis euismod."
+  description: Etiam porta sem malesuada magna mollis euismod.
   socialImage: "https://res.cloudinary.com/glinkaco/image/upload/v1646849499/tgc2022/social_yitz6j.png"
   canonicalOverwrite: ""
-
-post:
-  title: "Ipsum Cras Ullamcorper Fringilla"
-  date: "2020-05-10T12:00:00Z"
-  author: ""
-  image: "/assets/images/blog-images/blog4.jpg"
-  featuredBlogpost: true
-  featuredBlogpostOrder: 1
-  excerpt: |-
-    Morbi leo risus, porta ac consectetur ac, vestibulum at eros. Donec id elit non mi porta gravida at eget metus. Maecenas faucibus mollis interdum. Vivamus sagittis lacus vel augue laoreet rutrum faucibus dolor auctor.
 ---
 
 Aenean lacinia bibendum nulla sed consectetur. Maecenas faucibus mollis interdum. Aenean eu leo quam. Pellentesque ornare sem lacinia quam venenatis vestibulum. Curabitur blandit tempus porttitor. Morbi leo risus, porta ac consectetur ac, vestibulum at eros.
