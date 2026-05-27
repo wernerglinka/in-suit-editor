@@ -1,0 +1,49 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>{{ seo.title }}</title>
+    <meta name="description" content="{{ seo.description }}" />
+    <meta name="color-scheme" content="light dark" />
+    <link rel="icon" type="image/png" sizes="32x32" href="/assets/icons/favicon-32x32.png" />
+    <link rel="stylesheet" href="/assets/css/index.css" />
+    <link rel="stylesheet" href="/assets/css/create-post.css" />
+    <link rel="stylesheet" href="/assets/css/message-box.css" />
+    <link rel="stylesheet" href="/assets/css/prism-diff.css" />
+  </head>
+
+  <body class="{{ bodyClass }}">
+    {{ contents | safe }}
+
+    <script>
+      // Globals the editor expects on window. Hardcoded for POC (single locale, single author).
+      window.APP_LOCALES = ['en'];
+      window.DEFAULT_LOCALE = 'en';
+      window.CURRENT_LOCALE = 'en';
+      window.PATH_PREFIX = '/';
+      window.AUTHORS = [{ name: 'Albert Einstein' }];
+      window.BY_I18N = { en: 'by' };
+    </script>
+
+    <script>
+      // Reveal the editor when ?admin=true is in the URL or localStorage flag is set.
+      // Ported from upstream _includes/layouts/base.njk.
+      const urlParams = new URLSearchParams(window.location.search);
+      const adminFromUrl = urlParams.get('admin') === 'true';
+      const adminFromStorage = localStorage.getItem('admin') === 'true';
+
+      if (adminFromUrl) {
+        localStorage.setItem('admin', 'true');
+      } else if (adminFromStorage) {
+        urlParams.set('admin', 'true');
+        window.location.search = urlParams.toString();
+      }
+
+      const isAdmin = adminFromUrl || adminFromStorage;
+      if (isAdmin) {
+        document.querySelectorAll('.admin-only').forEach((el) => (el.style.display = 'initial'));
+      }
+    </script>
+  </body>
+</html>
