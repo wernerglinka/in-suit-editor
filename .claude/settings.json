@@ -1,0 +1,13 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(npm ls*)",
+      "Bash(npm outdated*)",
+      "mcp__chrome-devtools__list_pages",
+      "mcp__chrome-devtools__list_console_messages",
+      "mcp__metalsmith-plugin__validate",
+      "mcp__metalsmith-plugin__get-template",
+      "mcp__metalsmith-plugin__show-template"
+    ]
+  }
+}
