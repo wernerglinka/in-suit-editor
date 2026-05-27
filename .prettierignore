@@ -1,0 +1,13 @@
+# Build output
+build/
+
+# Node modules
+node_modules/
+
+# Package files (maintain formatting)
+package.json
+package-lock.json
+
+# Generated files
+*.min.js
+*.min.css

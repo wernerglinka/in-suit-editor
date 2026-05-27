@@ -1,0 +1,15 @@
+<nav>
+  <ul class="main-menu">
+    {% for item in mainMenu %} {# if item.path is "/" it will be replaced with "home" #}
+    <li class="{{ item.path | trimSlashes }}{% if item.path | trimSlashes === '' %}home{% endif %}">
+      <a href="{{ item.path }}"> {{ item.title }} </a>
+    </li>
+    {% endfor %}
+  </ul>
+</nav>
+
+<button class="hamburger-menu" aria-label="Toggle menu">
+  <span></span>
+  <span></span>
+  <span></span>
+</button>

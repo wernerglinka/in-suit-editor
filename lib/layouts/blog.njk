@@ -1,0 +1,62 @@
+{% extends "layout.njk" %} {% block body %}
+<div class="container">
+  <h1>My Blog</h1>
+
+  <div class="with-sidebar">
+    <ul class="blog-list">
+      {% if pageFiles and pageFiles.length > 0 %} {% for blogPost in pageFiles %}
+      <li>
+        <a href="{{ blogPost.path }}">
+          <h2>{{ blogPost.post.title }}</h2>
+          <time datetime="{{ blogPost.post.date }}">{{ blogPost.post.date | blogDate }}</time>
+          <img class="blog-image" src="{{ blogPost.post.image }}" alt="{{ blogPost.post.title }}" />
+          <div>{{ blogPost.post.excerpt }}</div>
+        </a>
+      </li>
+      {% endfor %} {% else %}
+      <p class="error-message">No blog posts found</p>
+      {% endif %}
+    </ul>
+
+    <aside class="sidebar">
+      <h2>Featured Posts</h2>
+      <ul>
+        {% for post in featuredBlogPosts %}
+        <li>
+          <p>{{post.date | blogDate}}</p>
+          <a href="/{{post.path}}">{{post.title}}</a>
+        </li>
+        {% endfor%}
+      </ul>
+    </aside>
+  </div>
+
+  {% if pagination %}
+  <div class="pagination">
+    {% if pagination.previous %}
+    <a href="{{ pagination.previous }}" class="pagination-previous">&laquo; Previous</a>
+    {% else %}
+    <span class="pagination-previous pagination-disabled">&laquo; Previous</span>
+    {% endif %}
+
+    <div class="pagination-pages">
+      {% if pagination.num == 1 %}
+      <span class="pagination-current">1</span>
+      {% else %}
+      <a href="{{ pagination.first }}" class="pagination-page">1</a>
+      {% endif %} {% for i in range(2, pagination.pages + 1) %} {% if i == pagination.num %}
+      <span class="pagination-current">{{ i }}</span>
+      {% else %}
+      <a href="/blog/{{ i }}/" class="pagination-page">{{ i }}</a>
+      {% endif %} {% endfor %}
+    </div>
+
+    {% if pagination.next %}
+    <a href="{{ pagination.next }}" class="pagination-next">Next &raquo;</a>
+    {% else %}
+    <span class="pagination-next pagination-disabled">Next &raquo;</span>
+    {% endif %}
+  </div>
+  {% endif %}
+</div>
+{% endblock %}

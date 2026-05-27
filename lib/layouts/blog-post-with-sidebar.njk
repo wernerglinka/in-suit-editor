@@ -1,0 +1,24 @@
+{% extends "layout.njk" %} {% block body %}
+<div class="container with-sidebar">
+  <article class="blog-post">
+    <h1>{{ post.title }}</h1>
+    <time datetime="{{ post.date }}">{{ post.date | blogDate }}</time>
+
+    <img class="blog-image" src="{{ post.image }}" alt="{{ post.title }}" />
+
+    {{ contents | safe }}
+  </article>
+
+  <aside class="sidebar">
+    <h2>Featured Posts</h2>
+    <ul>
+      {% for post in featuredBlogPosts %}
+      <li>
+        <p>{{post.date | blogDate}}</p>
+        <a href="/{{post.path}}">{{post.title}}</a>
+      </li>
+      {% endfor%}
+    </ul>
+  </aside>
+</div>
+{% endblock %}

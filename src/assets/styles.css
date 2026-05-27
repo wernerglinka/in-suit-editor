@@ -1,0 +1,846 @@
+/**
+ * CSS Variables
+ */
+:root {
+  /* Colors */
+  --color-primary: #333;
+  --color-secondary: blue;
+  --color-text: #333;
+  --color-text-light: #666;
+  --color-background: #fff;
+  --color-background-light: #f8f8f8;
+  --color-border: #ddd;
+  --color-shadow: rgba(0, 0, 0, 0.1);
+
+  /* Typography */
+  --font-primary: 'Open Sans', sans-serif;
+  --font-heading: 'Montserrat', sans-serif;
+
+  /* Spacing */
+  --spacing-xs: 0.5rem;
+  --spacing-sm: 1rem;
+  --spacing-md: 2rem;
+  --spacing-lg: 3rem;
+  --spacing-xl: 5rem;
+
+  /* Layout */
+  --container-width: 1024px;
+  --border-radius: 4px;
+
+  /* Transitions */
+  --transition-fast: 0.2s ease;
+  --transition-normal: 0.3s ease;
+}
+
+/**
+ * Base Styles
+ */
+
+/* Set 1rem = 10px for easier calculations */
+html {
+  font-size: 62.5%;
+  line-height: 1.5;
+  box-sizing: border-box;
+}
+
+/* Apply border-box to all elements */
+*,
+*:before,
+*:after {
+  box-sizing: inherit;
+}
+
+body {
+  margin: 0;
+  font-family: var(--font-primary);
+  font-size: 1.6rem; /* 16px */
+  color: var(--color-text);
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-start;
+  background-color: var(--color-background);
+}
+
+/**
+ * Typography
+ */
+h1,
+h2,
+h3,
+h4,
+h5,
+h6 {
+  font-family: var(--font-heading);
+  line-height: 1.2;
+  margin-top: var(--spacing-lg);
+  margin-bottom: var(--spacing-md);
+}
+
+h1 {
+  font-size: 3.2rem; /* 32px */
+}
+
+h2 {
+  font-size: 2.8rem; /* 28px */
+}
+
+h3 {
+  font-size: 2.4rem; /* 24px */
+}
+
+p {
+  margin-top: 0;
+  margin-bottom: var(--spacing-md);
+}
+
+/**
+ * Links
+ */
+a {
+  color: var(--color-primary);
+  text-decoration: none;
+  transition: color var(--transition-fast);
+
+  &:hover {
+    color: var(--color-secondary);
+  }
+}
+
+/**
+ * Container for content
+ */
+.container {
+  width: 100%;
+  max-width: var(--container-width);
+  margin: 0 auto;
+  padding: 0 var(--spacing-md);
+
+  /* Responsive container adjustments */
+  @media (max-width: 1024px) {
+    padding: 0 var(--spacing-md);
+  }
+}
+/**
+ * Header & Navigation
+ */
+header {
+  position: sticky;
+  top: 0;
+  z-index: 100;
+  box-shadow: 0 2px 4px var(--color-shadow);
+  background: rgba(255, 255, 255, 0.9);
+  padding: var(--spacing-md) 0;
+  backdrop-filter: blur(5px); /* Modern blur effect for sticky header */
+
+  .container {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+  }
+}
+
+/**
+ * Site branding
+ */
+.brand {
+  display: flex;
+  align-items: center;
+}
+
+.home-link {
+  img {
+    width: 100px;
+    height: auto;
+    transition: transform var(--transition-fast);
+
+    @media (max-width: 767px) {
+      width: 60px;
+    }
+  }
+
+  &:hover img {
+    transform: scale(1.05); /* Subtle zoom effect on hover */
+  }
+}
+
+/**
+ * Hamburger menu button - hidden by default on desktop
+ */
+.hamburger-menu {
+  display: none; /* Hidden on desktop */
+  background: none;
+  border: none;
+  cursor: pointer;
+  padding: var(--spacing-sm);
+  z-index: 1000;
+  position: relative;
+
+  span {
+    display: block;
+    width: 25px;
+    height: 3px;
+    background-color: var(--color-primary);
+    margin: 5px 0;
+    transition: all var(--transition-normal);
+    border-radius: 2px; /* Rounded edges for the hamburger lines */
+  }
+
+  /* Show hamburger on mobile */
+  @media (max-width: 767px) {
+    display: block;
+
+    /* Hamburger to X animation when active */
+    &.active {
+      span:nth-child(1) {
+        transform: rotate(45deg) translate(5px, 5px);
+      }
+
+      span:nth-child(2) {
+        opacity: 0;
+      }
+
+      span:nth-child(3) {
+        transform: rotate(-45deg) translate(7px, -7px);
+      }
+    }
+  }
+}
+
+/**
+ * Main menu
+ */
+.main-menu {
+  display: flex;
+  justify-content: flex-end;
+  list-style: none;
+  padding: 0;
+  margin: 0;
+
+  /* Desktop menu items */
+  li {
+    padding: 0 var(--spacing-md);
+  }
+
+  /* Desktop menu links */
+  a {
+    text-decoration: none;
+    color: var(--color-primary);
+    display: inline-block; /* Needed for transform to work */
+    transition: transform var(--transition-fast);
+    position: relative; /* For underline effect */
+    padding: var(--spacing-xs) 0;
+
+    /* Animated underline effect */
+    &::after {
+      content: '';
+      position: absolute;
+      width: 0;
+      height: 2px;
+      bottom: 0;
+      left: 0;
+      background-color: var(--color-secondary);
+      transition: width var(--transition-normal);
+    }
+
+    &:hover {
+      transform: translateY(-2px);
+
+      &::after {
+        width: 100%;
+      }
+    }
+  }
+
+  /* Active menu item */
+  &.active a {
+    font-weight: bold;
+
+    &::after {
+      width: 100%;
+      background-color: var(--color-secondary);
+    }
+  }
+
+  /* Mobile menu styles */
+  @media (max-width: 767px) {
+    display: flex; /* Always use flex layout */
+    position: absolute;
+    top: 105%;
+    left: 0;
+    right: 0;
+    z-index: 50;
+    background-color: var(--color-background-light);
+    flex-direction: column;
+    align-items: center;
+    padding: var(--spacing-md) 0;
+    box-shadow: 0 5px 10px var(--color-shadow);
+    border-radius: 0 0 var(--border-radius) var(--border-radius);
+
+    /* Hidden by default */
+    opacity: 0;
+    visibility: hidden;
+    transform: translateY(-5rem);
+    transition: opacity 0.3s ease, transform 0.3s ease, visibility 0s 0.3s;
+
+    /* Show menu when active */
+    &.active {
+      opacity: 1;
+      visibility: visible;
+      transform: translateY(0);
+      transition: opacity 0.3s ease, transform 0.3s ease;
+    }
+
+    /* Mobile menu items */
+    li {
+      padding: var(--spacing-sm) 0;
+      width: 100%;
+      text-align: center;
+      border-bottom: 1px solid var(--color-border);
+
+      &:last-child {
+        border-bottom: none;
+      }
+    }
+
+    /* Reset desktop hover effects for mobile */
+    a {
+      &::after {
+        display: none;
+      }
+
+      &:hover {
+        transform: none;
+      }
+    }
+
+    /* Animation handled by CSS transitions */
+  }
+}
+
+/**
+ * Current page highlighting
+ */
+.home .home,
+.other-page .other-page,
+.blog .blog {
+  color: var(--color-secondary) !important;
+  font-weight: bold;
+  pointer-events: none;
+  cursor: default;
+}
+
+/**
+ * Main Content
+ */
+main {
+  padding: var(--spacing-xl) 0;
+  flex: 1 0 auto; /* Allow main to grow and fill available space */
+}
+
+/**
+ * Images
+ */
+img {
+  display: block;
+  width: 100%;
+  height: auto;
+  max-width: 500px;
+
+  /* Special modifier for full-width images */
+  &[src$='#full-width'] {
+    max-width: 100%;
+    border-radius: 0;
+  }
+}
+
+/**
+ * Footer
+ */
+footer {
+  background: var(--color-primary);
+  padding: var(--spacing-md);
+  color: #fff;
+  margin-top: auto; /* Push footer to bottom */
+  box-shadow: 0 -2px 4px var(--color-shadow);
+
+  a {
+    color: #fff;
+    text-decoration: underline;
+    transition: opacity var(--transition-fast);
+
+    &:hover {
+      opacity: 0.8;
+    }
+  }
+}
+
+/**
+ * Blog Styles
+ */
+.blog-image {
+  margin: var(--spacing-lg) 0;
+}
+
+/**
+ * Code Highlighting
+ */
+code[class*='language-'] {
+  position: relative;
+  font-size: 1.4rem; /* 14px */
+  border-radius: var(--border-radius);
+  margin: var(--spacing-md) 0;
+}
+
+/**
+ * Language labels for code blocks
+ */
+code[class*='language-javascript']:after {
+  position: absolute;
+  top: 0;
+  right: 0;
+  content: 'js';
+  padding: 5px 8px;
+  background-color: rgba(0, 0, 0, 0.3);
+  color: #fff;
+  font-size: 1.2rem;
+  border-radius: 0 var(--border-radius) 0 var(--border-radius);
+}
+
+code[class*='language-html']:after {
+  position: absolute;
+  top: 0;
+  right: 0;
+  content: 'html';
+  padding: 5px 8px;
+  background-color: rgba(0, 0, 0, 0.3);
+  color: #fff;
+  font-size: 1.2rem;
+  border-radius: 0 var(--border-radius) 0 var(--border-radius);
+}
+
+code[class*='language-css']:after {
+  position: absolute;
+  top: 0;
+  right: 0;
+  content: 'css';
+  padding: 5px 8px;
+  background-color: rgba(0, 0, 0, 0.3);
+  color: #fff;
+  font-size: 1.2rem;
+  border-radius: 0 var(--border-radius) 0 var(--border-radius);
+}
+/**
+ * Fix for Prism.js operator styling
+ */
+.token.operator {
+  background: transparent;
+}
+
+/**
+ * Blog Author Section
+ */
+.blog-author {
+  margin: var(--spacing-lg) 0;
+  padding: var(--spacing-md);
+  background-color: var(--color-background-light);
+  border-radius: var(--border-radius);
+  box-shadow: 0 2px 4px var(--color-shadow);
+  transition:
+    transform var(--transition-fast),
+    box-shadow var(--transition-fast);
+
+  /* Hover effect */
+  &:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 8px var(--color-shadow);
+  }
+
+  /* Author heading */
+  h2 {
+    margin-top: 0;
+    color: var(--color-primary);
+    border-bottom: 2px solid var(--color-border);
+    padding-bottom: var(--spacing-xs);
+  }
+
+  /* Author content container */
+  > div {
+    display: flex;
+    justify-content: flex-start;
+    align-items: center;
+    gap: var(--spacing-md);
+  }
+
+  /* Author image */
+  img {
+    width: 150px;
+    border-radius: 50%; /* Circular image */
+    border: 3px solid var(--color-background);
+  }
+
+  /* Author bio */
+  p {
+    padding-left: var(--spacing-md);
+    font-style: italic;
+    margin: 0;
+  }
+
+  /* Responsive layout for small screens */
+  @media (max-width: 767px) {
+    > div {
+      flex-direction: column;
+      align-items: center;
+      text-align: center;
+    }
+
+    img {
+      margin-bottom: var(--spacing-md);
+    }
+
+    p {
+      padding-left: 0;
+    }
+  }
+}
+
+/**
+ * Blog List
+ */
+.blog-list {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+
+  /* Blog list item */
+  li {
+    padding-bottom: var(--spacing-xl);
+    margin-bottom: var(--spacing-lg);
+    border-bottom: 1px solid var(--color-border);
+    transition: transform var(--transition-fast);
+
+    &:last-child {
+      border-bottom: none;
+    }
+
+    &:hover {
+      transform: translateX(5px);
+    }
+  }
+
+  /* Blog list link */
+  a {
+    text-decoration: none;
+    color: var(--color-text);
+    display: block;
+
+    /* Blog post title */
+    h2 {
+      display: inline-block;
+      color: var(--color-primary);
+      border-bottom: 2px solid transparent;
+      transition:
+        color var(--transition-normal),
+        border-bottom var(--transition-normal);
+      margin-top: var(--spacing-sm);
+    }
+
+    &:hover h2 {
+      color: var(--color-secondary);
+      border-bottom: 2px solid var(--color-secondary);
+    }
+  }
+
+  /* Post date */
+  time {
+    display: block;
+    color: var(--color-text-light);
+    font-size: 1.4rem;
+    margin-bottom: var(--spacing-sm);
+  }
+
+  /**
+   * Post excerpt
+   */
+  p {
+    margin-top: var(--spacing-sm);
+    color: var(--color-text);
+  }
+}
+
+/**
+ * Typography Elements
+ */
+/**
+ * Blockquotes
+ */
+blockquote {
+  border-left: 4px solid var(--color-secondary);
+  background: var(--color-background-light);
+  padding: var(--spacing-md);
+  margin: var(--spacing-md) 0;
+  border-radius: 0 var(--border-radius) var(--border-radius) 0;
+  font-style: italic;
+  position: relative;
+}
+
+blockquote::before {
+  content: '"';
+  font-size: 4rem;
+  position: absolute;
+  left: var(--spacing-sm);
+  top: -1rem;
+  opacity: 0.2;
+  font-family: Georgia, serif;
+}
+
+blockquote p:last-child {
+  margin-bottom: 0;
+}
+
+/**
+ * 404 Page
+ */
+.error-page main {
+  text-align: center;
+  padding: var(--spacing-xl) 0;
+
+  h1 {
+    font-size: 4rem;
+    margin-bottom: var(--spacing-md);
+    color: var(--color-primary);
+  }
+
+  a {
+    display: inline-block;
+    margin-top: var(--spacing-md);
+    padding: var(--spacing-sm) var(--spacing-md);
+    background-color: var(--color-primary);
+    border-radius: var(--border-radius);
+    text-decoration: none;
+    color: white;
+    font-weight: bold;
+    transition:
+      background-color var(--transition-fast),
+      transform var(--transition-fast);
+
+    &:hover {
+      background-color: var(--color-secondary);
+      transform: translateY(-2px);
+    }
+  }
+}
+
+/**
+ * Pagination
+ */
+.pagination {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-top: var(--spacing-lg);
+  padding: var(--spacing-md) 0;
+  border-top: 1px solid var(--color-border);
+
+  /* Mobile styles */
+  @media (max-width: 767px) {
+    flex-direction: column;
+    gap: var(--spacing-md);
+
+    .pagination-pages {
+      order: 1;
+    }
+
+    .pagination-previous,
+    .pagination-next {
+      width: 100%;
+      text-align: center;
+    }
+  }
+}
+
+/**
+ * Container for page numbers
+ */
+.pagination-pages {
+  display: flex;
+  gap: var(--spacing-sm);
+}
+
+/**
+ * Common styles for all pagination elements
+ */
+.pagination-page,
+.pagination-current,
+.pagination-previous,
+.pagination-next {
+  display: inline-block;
+  padding: var(--spacing-xs) var(--spacing-sm);
+  border-radius: var(--border-radius);
+  text-decoration: none;
+  transition: all var(--transition-fast);
+  font-weight: 500;
+}
+
+/**
+ * Regular page number
+ */
+.pagination-page {
+  background-color: var(--color-background-light);
+  color: var(--color-text);
+  border: 1px solid var(--color-border);
+
+  &:hover {
+    background-color: var(--color-border);
+    transform: translateY(-2px);
+  }
+}
+
+/**
+ * Current page
+ */
+.pagination-current {
+  background-color: var(--color-primary);
+  color: white;
+  border: 1px solid var(--color-primary);
+  box-shadow: 0 2px 4px var(--color-shadow);
+}
+
+/**
+ * Previous and next buttons
+ */
+.pagination-previous,
+.pagination-next {
+  background-color: var(--color-background-light);
+  color: var(--color-text);
+  border: 1px solid var(--color-border);
+  font-weight: bold;
+
+  &:hover {
+    background-color: var(--color-border);
+    transform: translateY(-2px);
+  }
+}
+
+/**
+ * Disabled pagination elements
+ */
+.pagination-disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+  pointer-events: none;
+}
+
+/**
+ * Breadcrumbs
+ */
+.breadcrumbs {
+  max-width: var(--container-width);
+  margin: var(--spacing-md) auto 0;
+  display: flex;
+  gap: var(--spacing-sm);
+  list-style: none;
+  padding: 0;
+  font-family: var(--font-primary);
+
+  @media (max-width: 1024px) {
+    padding: 0 var(--spacing-md);
+  }
+
+  li {
+    font-size: 1.3rem;
+    color: var(--color-text-light);
+    text-transform: uppercase;
+    transition: color var(--transition-fast);
+
+    /* Separator between items */
+    &:after {
+      content: '›'; /* Using a nicer character for separator */
+      margin-left: var(--spacing-xs);
+      color: var(--color-primary);
+    }
+
+    /* Remove separator from last item */
+    &:last-child {
+      color: var(--color-primary);
+      font-weight: 600;
+
+      &::after {
+        display: none;
+      }
+    }
+
+    /* Hover effect */
+    a:hover {
+      color: var(--color-secondary);
+      text-decoration: none;
+    }
+  }
+}
+
+/**
+ * Sidebar Layout
+ */
+.with-sidebar {
+  display: flex;
+  gap: var(--spacing-xl);
+
+  @media (max-width: 767px) {
+    flex-direction: column;
+  }
+
+  /* Sidebar styling */
+  .sidebar {
+    width: 40rem;
+    background-color: var(--color-background-light);
+    padding: var(--spacing-md);
+    box-shadow: 0 2px 4px var(--color-shadow);
+    align-self: flex-start; /* Prevents the sidebar from stretching to full height */
+    height: fit-content; /* Makes the sidebar only as tall as its content */
+
+    /* Sidebar lists */
+    ul {
+      list-style: none;
+      padding: 0;
+      margin: 0;
+
+      li {
+        margin-bottom: var(--spacing-md);
+        transition: transform var(--transition-fast);
+
+        &:hover {
+          transform: translateX(5px);
+        }
+      }
+
+      /* Sidebar links */
+      a {
+        text-decoration: none;
+        color: var(--color-primary);
+        border-bottom: 1px solid var(--color-border);
+        transition: all var(--transition-fast);
+        display: inline-block;
+        padding-bottom: 2px;
+
+        &:hover {
+          color: var(--color-secondary);
+          border-bottom: 1px solid var(--color-secondary);
+        }
+      }
+
+      /* Sidebar text */
+      p {
+        margin: 0;
+        font-size: 1.2rem; /* 12px */
+        color: var(--color-text-light);
+        text-transform: uppercase;
+      }
+    }
+
+    /* Responsive sidebar */
+    @media (max-width: 767px) {
+      width: 100%;
+      margin-bottom: var(--spacing-lg);
+    }
+  }
+}
