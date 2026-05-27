@@ -3,7 +3,6 @@
  * SPDX-License-Identifier: MIT
  */
 
-import { checkAIKeys } from './ai-config.js';
 import { customAlert } from '../utils/dialog-utils.js';
 
 /**
@@ -35,19 +34,9 @@ export const getMonitor = (ui, lang, modelName) => ({
  * @param {HTMLButtonElement} btn - The button that triggered the action.
  * @param {Function} actionFn - The asynchronous function containing the AI logic.
  * @param {Function} updateCallback - Callback for UI updates.
- * @param {boolean} [isNative=false] - Whether the action uses native AI support (bypasses credential check).
  * @return {Promise<void>}
  */
-export async function runAIAction(
-  ui,
-  btn,
-  actionFn,
-  updateCallback,
-  isNative = false,
-) {
-  if (!isNative && !checkAIKeys(ui)) {
-    return;
-  }
+export async function runAIAction(ui, btn, actionFn, updateCallback) {
   btn.disabled = true;
   const oldText = btn.textContent;
   btn.textContent = '⏳';
@@ -92,9 +81,6 @@ export function refreshAIVisibility(ui) {
   if (!aiEnabled && ui.aiStatus) {
     ui.aiStatus.style.display = 'none';
   }
-  if (ui.aiKeysSection) {
-    ui.aiKeysSection.style.display = aiEnabled ? 'block' : 'none';
-  }
 
   aiButtons.forEach((btn) => {
     if (btn) {
@@ -107,43 +93,6 @@ export function refreshAIVisibility(ui) {
       btn.style.display = shouldShow ? 'flex' : 'none';
       if (btn.parentElement?.classList.contains('input-with-action')) {
         btn.parentElement.style.display = shouldShow ? 'flex' : 'block';
-      }
-    }
-  });
-}
-
-/**
- * Synchronizes UI input fields with the current AI configuration.
- * @param {Object} ui - The UI elements.
- * @param {Object} configs - The AI configurations.
- * @param {string[]} aiKeys - The list of AI configuration keys.
- */
-export function updateUIFields(ui, configs, aiKeys) {
-  const currentBackend = ui.aiBackendSelect.value;
-  const currentConfig = configs[currentBackend] || {};
-  aiKeys.forEach((id) => {
-    if (id === 'ai-backend') {
-      return;
-    }
-    const key =
-      id.replace(/-([a-z])/g, (_, c) => c.toUpperCase()) +
-      (id.includes('toggle')
-        ? ''
-        : id.includes('provider') ||
-            id.includes('backend') ||
-            id.includes('device') ||
-            id.includes('dtype')
-          ? 'Select'
-          : 'Input');
-    const input = ui[key] || document.getElementById(id);
-    if (input) {
-      const val = currentConfig[id];
-      if (input.type === 'checkbox') {
-        input.checked = val === true;
-      } else if (val !== undefined) {
-        input.value = val;
-      } else {
-        input.value = '';
       }
     }
   });

@@ -31,36 +31,17 @@ const getRewriterOptions = (ui, lang) => ({
  * @return {Promise<void>}
  */
 export async function initAIRewriter(ui, updateCallback) {
-  if (
-    !('Rewriter' in self) ||
-    (await self.Rewriter.availability({
-      expectedInputLanguages: ['en'],
-      outputLanguage: 'en',
-    }).catch(() => 'unavailable')) === 'unavailable'
-  ) {
-    await import('built-in-ai-task-apis-polyfills/rewriter.js');
+  if (!('Rewriter' in self)) {
+    return;
   }
-  if (typeof Rewriter !== 'undefined') {
-    try {
-      const status = await Rewriter.availability({
-        sharedContext: 'Rewriting a blog post.',
-      });
-      if (status !== 'unavailable') {
-        ui.aiRewriterSection.setAttribute('data-ai-available', 'true');
-        ui.aiRewriterBtn.setAttribute('data-ai-available', 'true');
-        refreshAIVisibility(ui);
-      } else {
-        ui.aiRewriterSection.setAttribute('data-ai-available', 'true');
-        ui.aiRewriterBtn.setAttribute('data-ai-available', 'true');
-        refreshAIVisibility(ui);
-      }
-    } catch (e) {
-      console.warn('AI Rewriter availability check failed', e);
-      ui.aiRewriterSection.setAttribute('data-ai-available', 'true');
-      ui.aiRewriterBtn.setAttribute('data-ai-available', 'true');
-      refreshAIVisibility(ui);
-    }
+  try {
+    await Rewriter.availability({ sharedContext: 'Rewriting a blog post.' });
+  } catch (e) {
+    console.warn('AI Rewriter availability check failed', e);
   }
+  ui.aiRewriterSection.setAttribute('data-ai-available', 'true');
+  ui.aiRewriterBtn.setAttribute('data-ai-available', 'true');
+  refreshAIVisibility(ui);
 
   ui.aiRewriterBtn.onclick = async () => {
     const fullContent = ui.contentInput.value;
@@ -93,8 +74,6 @@ export async function initAIRewriter(ui, updateCallback) {
     if (!inputToRewrite.trim()) {
       return customAlert(ui, 'Please write some content first.');
     }
-
-    const isNative = Rewriter.toString().includes('[native code]');
 
     await runAIAction(
       ui,
@@ -142,7 +121,6 @@ export async function initAIRewriter(ui, updateCallback) {
         ui.aiRewriterLength.value = 'as-is';
         updateCallback();
       },
-      isNative,
     );
   };
 }

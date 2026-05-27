@@ -3,14 +3,7 @@
  * SPDX-License-Identifier: MIT
  */
 
-import {
-  saveBackendConfigs,
-  updateBackendFields,
-  updateGlobalConfig,
-} from '../ai/ai-config.js';
-import { refreshAIVisibility, updateUIFields } from '../ai/ai-toggle.js';
-import { aiKeys } from '../ai/ai-constants.js';
-import { customAlert } from '../utils/dialog-utils.js';
+import { refreshAIVisibility } from '../ai/ai-toggle.js';
 
 /**
  * Applies a settings object to the application state (LocalStorage and UI).
@@ -40,19 +33,7 @@ export async function applySettings(settings, ui) {
     }
   });
 
-  if (settings['ai-backend'] !== undefined) {
-    localStorage.setItem('ai-backend', settings['ai-backend']);
-    ui.aiBackendSelect.value = settings['ai-backend'];
-  }
-
-  if (settings['ai-backend-configs']) {
-    saveBackendConfigs(settings['ai-backend-configs']);
-    updateUIFields(ui, settings['ai-backend-configs'], aiKeys);
-  }
-
-  updateBackendFields(ui);
   refreshAIVisibility(ui);
-  updateGlobalConfig(ui);
 
   if (ui.aiFeaturesToggle.checked) {
     const { initAIFeatures } = await import('../ai/ai-init.js');

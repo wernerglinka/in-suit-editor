@@ -55,8 +55,6 @@ export async function runTranslation(
   const preview = details.querySelector('.translation-preview');
   const btn = details.querySelector('.translate-btn');
 
-  const isNative = Translator.toString().includes('[native code]');
-
   await runAIAction(
     ui,
     btn,
@@ -122,7 +120,6 @@ export async function runTranslation(
       await updatePreview(textarea, preview);
     },
     updateCallback,
-    isNative,
   );
 }
 

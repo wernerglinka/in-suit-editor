@@ -23,41 +23,24 @@ export async function initAIClassifier(ui, updateCallback) {
   if (!ui.aiClassifierBtn) {
     return;
   }
-  if (
-    !('Classifier' in self) ||
-    (await self.Classifier.availability().catch(() => 'unavailable')) ===
-      'unavailable'
-  ) {
-    try {
-      await import('built-in-ai-task-apis-polyfills/classifier.js');
-    } catch (e) {
-      console.error('Failed to load Classifier polyfill', e);
-      return;
-    }
+  // Classifier is not a Chrome built-in. The upstream demo only ships it via
+  // built-in-ai-task-apis-polyfills/classifier.js. Until we decide whether to
+  // pull in that polyfill, the classifier button stays hidden.
+  if (!('Classifier' in self)) {
+    return;
   }
   const ClassifierClass = self.Classifier;
 
   await restoreClassifierResults(ui, updateCallback);
 
-  if (ClassifierClass) {
-    try {
-      const status = await ClassifierClass.availability();
-      if (status !== 'unavailable') {
-        ui.aiClassifierSection?.setAttribute('data-ai-available', 'true');
-        ui.aiClassifierBtn?.setAttribute('data-ai-available', 'true');
-        refreshAIVisibility(ui);
-      } else {
-        ui.aiClassifierSection?.setAttribute('data-ai-available', 'true');
-        ui.aiClassifierBtn?.setAttribute('data-ai-available', 'true');
-        refreshAIVisibility(ui);
-      }
-    } catch (e) {
-      console.warn('AI Classifier availability check failed', e);
-      ui.aiClassifierSection?.setAttribute('data-ai-available', 'true');
-      ui.aiClassifierBtn?.setAttribute('data-ai-available', 'true');
-      refreshAIVisibility(ui);
-    }
+  try {
+    await ClassifierClass.availability();
+  } catch (e) {
+    console.warn('AI Classifier availability check failed', e);
   }
+  ui.aiClassifierSection?.setAttribute('data-ai-available', 'true');
+  ui.aiClassifierBtn?.setAttribute('data-ai-available', 'true');
+  refreshAIVisibility(ui);
 
   window.addEventListener('classifier-updated', () => {
     const id = localStorage.getItem('current-draft-id');
@@ -75,7 +58,6 @@ export async function initAIClassifier(ui, updateCallback) {
     }
 
     const input = `Title: ${title}\n\nContent: ${content}`;
-    const isNative = ClassifierClass.toString().includes('[native code]');
 
     await runAIAction(
       ui,
@@ -104,7 +86,6 @@ export async function initAIClassifier(ui, updateCallback) {
         }
       },
       updateCallback,
-      isNative,
     );
   };
 }

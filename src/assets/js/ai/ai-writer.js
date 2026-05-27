@@ -29,37 +29,20 @@ const getWriterOptions = (ui, lang) => ({
  * @return {Promise<void>}
  */
 export async function initAIWriter(ui, updateCallback) {
-  if (
-    !('Writer' in self) ||
-    (await self.Writer.availability({
-      expectedInputLanguages: ['en'],
-      outputLanguage: 'en',
-    }).catch(() => 'unavailable')) === 'unavailable'
-  ) {
-    await import('built-in-ai-task-apis-polyfills/writer.js');
+  if (!('Writer' in self)) {
+    return;
   }
-  if (typeof Writer !== 'undefined') {
-    try {
-      const status = await Writer.availability({
-        sharedContext:
-          'The user provides a few bullet points. Expand them into a detailed blog post.',
-      });
-      if (status !== 'unavailable') {
-        ui.aiWriterSection.setAttribute('data-ai-available', 'true');
-        ui.aiWriterBtn.setAttribute('data-ai-available', 'true');
-        refreshAIVisibility(ui);
-      } else {
-        ui.aiWriterSection.setAttribute('data-ai-available', 'true');
-        ui.aiWriterBtn.setAttribute('data-ai-available', 'true');
-        refreshAIVisibility(ui);
-      }
-    } catch (e) {
-      console.warn('AI Writer availability check failed', e);
-      ui.aiWriterSection.setAttribute('data-ai-available', 'true');
-      ui.aiWriterBtn.setAttribute('data-ai-available', 'true');
-      refreshAIVisibility(ui);
-    }
+  try {
+    await Writer.availability({
+      sharedContext:
+        'The user provides a few bullet points. Expand them into a detailed blog post.',
+    });
+  } catch (e) {
+    console.warn('AI Writer availability check failed', e);
   }
+  ui.aiWriterSection.setAttribute('data-ai-available', 'true');
+  ui.aiWriterBtn.setAttribute('data-ai-available', 'true');
+  refreshAIVisibility(ui);
 
   ui.aiWriterBtn.onclick = async () => {
     const input = ui.aiWriterInput.value.trim();
@@ -83,8 +66,6 @@ export async function initAIWriter(ui, updateCallback) {
         return;
       }
     }
-
-    const isNative = Writer.toString().includes('[native code]');
 
     await runAIAction(
       ui,
@@ -116,7 +97,6 @@ export async function initAIWriter(ui, updateCallback) {
         ui.aiWriterInput.value = '';
         updateCallback();
       },
-      isNative,
     );
   };
 }

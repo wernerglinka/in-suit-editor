@@ -16,14 +16,8 @@ import { runTagGeneration } from './ai-tag-generator.js';
  * @return {Promise<void>}
  */
 export async function initTagSuggestions(ui, updateCallback) {
-  if (
-    !('LanguageModel' in self) ||
-    (await self.LanguageModel.availability({
-      expectedInputs: [{ type: 'text', languages: ['en'] }],
-      expectedOutputs: [{ type: 'text', languages: ['en'] }],
-    }).catch(() => 'unavailable')) === 'unavailable'
-  ) {
-    await import('prompt-api-polyfill');
+  if (!('LanguageModel' in self)) {
+    return;
   }
   let tagsSchema = null;
   /**
@@ -39,33 +33,22 @@ export async function initTagSuggestions(ui, updateCallback) {
     ).json());
 
   try {
-    const status = await LanguageModel.availability({
+    await LanguageModel.availability({
       initialPrompts: [
         { role: 'system', content: 'Suggest tags for this blog post.' },
       ],
     });
-    if (status !== 'unavailable') {
-      ui.aiSuggestTagsBtn.setAttribute('data-ai-available', 'true');
-      refreshAIVisibility(ui);
-    } else {
-      ui.aiSuggestTagsBtn.setAttribute('data-ai-available', 'true');
-      refreshAIVisibility(ui);
-    }
   } catch (e) {
     console.warn('AI LanguageModel availability check failed', e);
-    if (typeof LanguageModel !== 'undefined') {
-      ui.aiSuggestTagsBtn.setAttribute('data-ai-available', 'true');
-      refreshAIVisibility(ui);
-    }
   }
+  ui.aiSuggestTagsBtn.setAttribute('data-ai-available', 'true');
+  refreshAIVisibility(ui);
 
   ui.aiSuggestTagsBtn.onclick = async () => {
     const content = ui.contentInput.value;
     if (!content || content.length < 20) {
       return customAlert(ui, 'Please write some content first.');
     }
-
-    const isNative = LanguageModel.toString().includes('[native code]');
 
     await runAIAction(
       ui,
@@ -132,7 +115,6 @@ export async function initTagSuggestions(ui, updateCallback) {
         await Promise.all(tasks);
       },
       updateCallback,
-      isNative,
     );
   };
 }

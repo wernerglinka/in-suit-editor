@@ -22,14 +22,8 @@ export { ensureAllTranslationsReady } from './ai-translator-core.js';
  * @return {Promise<void>}
  */
 export async function initAITranslator(ui, updateCallback) {
-  if (
-    !('Translator' in self) ||
-    (await self.Translator.availability({
-      sourceLanguage: 'en',
-      targetLanguage: 'es',
-    }).catch(() => 'unavailable')) === 'unavailable'
-  ) {
-    await import('built-in-ai-task-apis-polyfills/translator.js');
+  if (!('Translator' in self)) {
+    return;
   }
 
   // Restore state
@@ -86,36 +80,34 @@ export async function initAITranslator(ui, updateCallback) {
     }
   });
 
-  if (typeof Translator !== 'undefined') {
-    ui.aiTranslationSection.setAttribute('data-ai-available', 'true');
-    if (ui.aiTranslateAllBtn) {
-      ui.aiTranslateAllBtn.setAttribute('data-ai-available', 'true');
-      ui.aiTranslateAllBtn.onclick = () => {
-        const enabledLocales = Array.from(
-          ui.aiTranslationLocalesContainer.querySelectorAll(
-            '.ai-locale-toggle:checked',
-          ),
-        ).map((cb) => cb.getAttribute('data-locale'));
+  ui.aiTranslationSection.setAttribute('data-ai-available', 'true');
+  if (ui.aiTranslateAllBtn) {
+    ui.aiTranslateAllBtn.setAttribute('data-ai-available', 'true');
+    ui.aiTranslateAllBtn.onclick = () => {
+      const enabledLocales = Array.from(
+        ui.aiTranslationLocalesContainer.querySelectorAll(
+          '.ai-locale-toggle:checked',
+        ),
+      ).map((cb) => cb.getAttribute('data-locale'));
 
-        if (enabledLocales.length === 0) {
-          customAlert(
-            ui,
-            'Please enable at least one locale translation in Settings.',
-          );
-          return;
-        }
+      if (enabledLocales.length === 0) {
+        customAlert(
+          ui,
+          'Please enable at least one locale translation in Settings.',
+        );
+        return;
+      }
 
-        enabledLocales.forEach((locale) => {
-          const details = ui.aiTranslationsContainer.querySelector(
-            `details[data-locale="${locale}"]`,
-          );
-          const btn = details?.querySelector('.translate-btn');
-          if (btn) btn.click();
-        });
-      };
-    }
-    refreshAIVisibility(ui);
+      enabledLocales.forEach((locale) => {
+        const details = ui.aiTranslationsContainer.querySelector(
+          `details[data-locale="${locale}"]`,
+        );
+        const btn = details?.querySelector('.translate-btn');
+        if (btn) btn.click();
+      });
+    };
   }
+  refreshAIVisibility(ui);
 
   // Initial UI refresh based on restored state
   refreshAITranslationUI(ui, updateCallback);

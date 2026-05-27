@@ -4,7 +4,6 @@
  */
 
 import { detectLanguage } from './ai-language-detection.js';
-import { checkAIKeys } from './ai-config.js';
 
 /** @type {Object} */
 export const imageMetadataSchema = {
@@ -29,22 +28,7 @@ export async function generateImageMetadata(imageSource, ui) {
     return null;
   }
 
-  if (
-    !('LanguageModel' in self) ||
-    (await self.LanguageModel.availability({
-      expectedInputs: [{ type: 'text', languages: ['en'] }, { type: 'image' }],
-      expectedOutputs: [{ type: 'text', languages: ['en'] }],
-    }).catch(() => 'unavailable')) === 'unavailable'
-  ) {
-    await import('/assets/js/prompt-api-polyfill.js');
-  }
-
-  if (typeof LanguageModel === 'undefined') {
-    return null;
-  }
-
-  const isNative = LanguageModel.toString().includes('[native code]');
-  if (!isNative && !checkAIKeys(ui)) {
+  if (!('LanguageModel' in self)) {
     return null;
   }
 

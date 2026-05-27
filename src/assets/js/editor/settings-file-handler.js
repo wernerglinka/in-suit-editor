@@ -19,10 +19,6 @@ export function initSettingsFileHandler(ui) {
         localStorage.getItem('ai-features-enabled') === 'true',
       'ai-only-existing-tags':
         localStorage.getItem('ai-only-existing-tags') === 'true',
-      'ai-backend': localStorage.getItem('ai-backend'),
-      'ai-backend-configs': JSON.parse(
-        localStorage.getItem('ai-backend-configs') || '{}',
-      ),
     };
 
     try {

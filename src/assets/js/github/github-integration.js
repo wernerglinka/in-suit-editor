@@ -24,10 +24,7 @@ export function initGitHubSync(ui) {
       return;
     }
 
-    let value = config[id] || localStorage.getItem(id);
-    if (!value && id === 'gh-token') {
-      value = window.FIREBASE_CONFIG?.github_pat;
-    }
+    const value = config[id] || localStorage.getItem(id);
 
     input.value = value || '';
 

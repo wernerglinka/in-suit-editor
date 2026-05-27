@@ -3,56 +3,7 @@
  * SPDX-License-Identifier: MIT
  */
 
-import { refreshAIVisibility, updateUIFields } from './ai-ui-utils.js';
-import { aiKeys } from './ai-constants.js';
-import {
-  updateGlobalConfig,
-  updateBackendFields,
-  getBackendConfigs,
-  saveBackendConfigs,
-} from './ai-config.js';
-
-/**
- * Sets up listeners for AI-related input fields.
- * @param {Object} ui - The UI elements.
- * @param {Object} configs - The AI configurations.
- */
-const setupAIFieldListeners = (ui, configs) => {
-  aiKeys.forEach((id) => {
-    if (id === 'ai-backend') {
-      return;
-    }
-    const key =
-      id.replace(/-([a-z])/g, (_, c) => c.toUpperCase()) +
-      (id.includes('toggle')
-        ? ''
-        : id.includes('provider') ||
-            id.includes('backend') ||
-            id.includes('device') ||
-            id.includes('dtype')
-          ? 'Select'
-          : 'Input');
-    const input = ui[key] || document.getElementById(id);
-    if (input) {
-      input[input.type === 'checkbox' ? 'onchange' : 'oninput'] = () => {
-        const currentBackend = ui.aiBackendSelect.value;
-        if (!configs[currentBackend]) {
-          configs[currentBackend] = {};
-        }
-        configs[currentBackend][id] =
-          input.type === 'checkbox' ? input.checked : input.value;
-        saveBackendConfigs(configs);
-        updateGlobalConfig(ui);
-        if (id === 'ai-use-app-check') {
-          updateBackendFields(ui);
-        }
-        if (ui.aiFeaturesToggle.checked) {
-          triggerAIInit(ui);
-        }
-      };
-    }
-  });
-};
+import { refreshAIVisibility } from './ai-ui-utils.js';
 
 /**
  * Triggers the initialization of AI features.
@@ -71,23 +22,6 @@ const triggerAIInit = async (ui) => {
  * @param {Object} ui - The UI elements.
  */
 export function initAIToggle(ui) {
-  const configs = getBackendConfigs();
-  ui.aiBackendSelect.value =
-    localStorage.getItem('ai-backend') || ui.aiBackendSelect.value;
-  updateUIFields(ui, configs, aiKeys);
-
-  ui.aiBackendSelect.onchange = () => {
-    localStorage.setItem('ai-backend', ui.aiBackendSelect.value);
-    updateUIFields(ui, configs, aiKeys);
-    updateBackendFields(ui);
-    refreshAIVisibility(ui);
-    updateGlobalConfig(ui);
-  };
-
-  setupAIFieldListeners(ui, configs);
-  updateBackendFields(ui);
-  updateGlobalConfig(ui);
-
   ui.aiFeaturesToggle.checked =
     localStorage.getItem('ai-features-enabled') === 'true';
   ui.aiOnlyExistingTagsToggle.checked =
@@ -115,4 +49,4 @@ export function initAIToggle(ui) {
   });
 }
 
-export { refreshAIVisibility, updateUIFields };
+export { refreshAIVisibility };

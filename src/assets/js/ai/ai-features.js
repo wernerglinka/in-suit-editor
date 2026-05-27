@@ -41,34 +41,26 @@ async function runSummarizer(ui, type, input, targetInput, updateCallback) {
   const btn =
     type === 'headline' ? ui.aiSuggestTitleBtn : ui.aiSuggestDescriptionBtn;
 
-  const isNative = Summarizer.toString().includes('[native code]');
+  await runAIAction(ui, btn, async () => {
+    const lang = await detectLanguage(input);
+    const options = getSummarizerOptions(ui, lang, type);
+    const status = await Summarizer.availability(options);
+    if (status === 'unavailable') {
+      return customAlert(ui, `Summarizer unavailable for: ${lang}`);
+    }
 
-  await runAIAction(
-    ui,
-    btn,
-    async () => {
-      const lang = await detectLanguage(input);
-      const options = getSummarizerOptions(ui, lang, type);
-      const status = await Summarizer.availability(options);
-      if (status === 'unavailable') {
-        return customAlert(ui, `Summarizer unavailable for: ${lang}`);
-      }
-
-      const summarizer = await Summarizer.create(options);
-      const stream = summarizer.summarizeStreaming(input);
-      targetInput.value = '';
-      for await (const chunk of stream) {
-        targetInput.value += chunk;
-        updateCallback();
-      }
-      targetInput.value = targetInput.value.trim().replace(/^["']|["']$/g, '');
-      if (type === 'headline') {
-        targetInput.value = targetInput.value.replace(/\.$/, '');
-      }
-    },
-    updateCallback,
-    isNative,
-  );
+    const summarizer = await Summarizer.create(options);
+    const stream = summarizer.summarizeStreaming(input);
+    targetInput.value = '';
+    for await (const chunk of stream) {
+      targetInput.value += chunk;
+      updateCallback();
+    }
+    targetInput.value = targetInput.value.trim().replace(/^["']|["']$/g, '');
+    if (type === 'headline') {
+      targetInput.value = targetInput.value.replace(/\.$/, '');
+    }
+  }, updateCallback);
 }
 
 /**
@@ -78,45 +70,28 @@ async function runSummarizer(ui, type, input, targetInput, updateCallback) {
  * @return {Promise<void>}
  */
 export async function initAI(ui, updateCallback) {
-  if (
-    !('Summarizer' in self) ||
-    (await self.Summarizer.availability({
+  if (!('Summarizer' in self)) {
+    return;
+  }
+  try {
+    const status = await Summarizer.availability({
+      type: 'teaser',
+      format: 'plain-text',
       expectedInputLanguages: ['en'],
       outputLanguage: 'en',
-    }).catch(() => 'unavailable')) === 'unavailable'
-  ) {
-    await import('built-in-ai-task-apis-polyfills/summarizer.js');
-  }
-  if (typeof Summarizer !== 'undefined') {
-    try {
-      const status = await Summarizer.availability({
-        type: 'teaser',
-        format: 'plain-text',
-        expectedInputLanguages: ['en'],
-        outputLanguage: 'en',
-      });
-      if (status !== 'unavailable') {
-        ui.aiSuggestTitleBtn.setAttribute('data-ai-available', 'true');
-        ui.aiSuggestDescriptionBtn.setAttribute('data-ai-available', 'true');
-        refreshAIVisibility(ui);
-      } else {
-        // Even if status is unavailable, if it's the polyfill, it might just be missing keys.
-        // We show it anyway if the API is defined.
-        ui.aiSuggestTitleBtn.setAttribute('data-ai-available', 'true');
-        ui.aiSuggestDescriptionBtn.setAttribute('data-ai-available', 'true');
-        refreshAIVisibility(ui);
-      }
-      if (status === 'downloadable' || status === 'downloading') {
-        ui.aiStatus.style.display = 'flex';
-        ui.aiStatusText.textContent = 'AI model available (needs download)';
-      }
-    } catch (e) {
-      console.warn('AI Summarizer availability check failed', e);
-      // Fallback: show buttons if the API exists
-      ui.aiSuggestTitleBtn.setAttribute('data-ai-available', 'true');
-      ui.aiSuggestDescriptionBtn.setAttribute('data-ai-available', 'true');
-      refreshAIVisibility(ui);
+    });
+    ui.aiSuggestTitleBtn.setAttribute('data-ai-available', 'true');
+    ui.aiSuggestDescriptionBtn.setAttribute('data-ai-available', 'true');
+    refreshAIVisibility(ui);
+    if (status === 'downloadable' || status === 'downloading') {
+      ui.aiStatus.style.display = 'flex';
+      ui.aiStatusText.textContent = 'AI model available (needs download)';
     }
+  } catch (e) {
+    console.warn('AI Summarizer availability check failed', e);
+    ui.aiSuggestTitleBtn.setAttribute('data-ai-available', 'true');
+    ui.aiSuggestDescriptionBtn.setAttribute('data-ai-available', 'true');
+    refreshAIVisibility(ui);
   }
   ui.aiSuggestTitleBtn.onclick = () =>
     runSummarizer(
