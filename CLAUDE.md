@@ -16,14 +16,21 @@ answer, irreversible operations (force push, history rewrites, deleted
 branches), or anything that touches state outside this repo.
 
 Verify UI changes in the browser via Chrome MCP before reporting a pass
-complete. The dev server runs at localhost:3000.
+complete. The dev server runs at localhost:3000 via `npm start`. For
+features that touch Netlify Identity or the publish Function, use
+`netlify dev` instead so the auth endpoint and Functions runtime are
+proxied locally.
 
 ## Scope guardrails
 
-- Faithful port first, opinionation later. Don't customize until the
-  whole upstream feature set works end-to-end.
+- The publish path is Netlify Identity + a Netlify Function that holds
+  the GitHub PAT. Do not reintroduce client-side PATs or per-user
+  GitHub credential inputs in the admin UI.
+- Role enforcement lives in the Function (`netlify/functions/publish.js`),
+  not in the UI. The UI hides buttons as a courtesy; the Function is
+  the actual security boundary.
 - Don't add image optimization, RSS, i18n, or PWA bits unless the
   upstream feature being ported needs them.
-- Keep polyfill UI elements in src/admin.html intact (initAIToggle
-  reads them at startup). Prune them only when modifying AI modules
-  to call Chrome built-ins.
+- `/admin/` is still publicly readable. Identity gates the publish
+  action, not the editor page. Don't deploy sensitive content there
+  until that changes.
