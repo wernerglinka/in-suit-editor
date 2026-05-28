@@ -1,0 +1,16 @@
+[build]
+  publish = "build"
+  command = "npm run build"
+
+[functions]
+  directory = "netlify/functions"
+  node_bundler = "esbuild"
+
+# `netlify dev` wraps the existing browser-sync dev server and adds
+# Function routing + Identity proxying on top, so the admin can call
+# /.netlify/functions/publish locally just like in production.
+[dev]
+  command = "npm start"
+  targetPort = 3000
+  framework = "#custom"
+  publish = "build"

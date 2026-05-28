@@ -6,11 +6,11 @@
 import { performHousekeeping, drafts } from '../drafts/draft-manager.js';
 import { downloadZIP } from '../export/zip-exporter.js';
 import { generateMarkdown } from '../utils/markdown-utils.js';
-import { createPR } from '../github/github-integration.js';
+import { publish } from './publish.js';
 import { customAlert } from '../utils/dialog-utils.js';
 
 /**
- * Initializes editor actions like copy, download, and GitHub PR creation.
+ * Initializes editor actions like copy, download, and publishing.
  * @param {Object} ui - The UI elements.
  */
 export function initEditorActions(ui) {
@@ -74,7 +74,7 @@ export function initEditorActions(ui) {
     );
   };
 
-  ui.githubPrBtn.onclick = async () => {
+  const handlePublish = (mode) => async () => {
     await performHousekeeping();
     const id = localStorage.getItem('current-draft-id');
     const d = drafts.find((draft) => draft.id === id);
@@ -82,6 +82,9 @@ export function initEditorActions(ui) {
       customAlert(ui, 'Please select or create a draft first.');
       return;
     }
-    createPR(ui, d);
+    await publish(ui, d, mode);
   };
+
+  ui.publishPrBtn.onclick = handlePublish('pr');
+  ui.publishDirectBtn.onclick = handlePublish('direct');
 }

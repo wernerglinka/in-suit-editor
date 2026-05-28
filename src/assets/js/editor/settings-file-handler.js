@@ -14,7 +14,6 @@ import { applySettings } from './settings-loader.js';
 export function initSettingsFileHandler(ui) {
   ui.saveSettingsBtn.onclick = async () => {
     const settings = {
-      'gh-config': JSON.parse(localStorage.getItem('gh-config') || '{}'),
       'ai-features-enabled':
         localStorage.getItem('ai-features-enabled') === 'true',
       'ai-only-existing-tags':

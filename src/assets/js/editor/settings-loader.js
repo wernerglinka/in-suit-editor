@@ -6,22 +6,12 @@
 import { refreshAIVisibility } from '../ai/ai-toggle.js';
 
 /**
- * Applies a settings object to the application state (LocalStorage and UI).
+ * Applies a settings object to the application state.
  * @param {Object} settings - The settings object.
  * @param {Object} ui - The UI elements.
  * @return {Promise<void>}
  */
 export async function applySettings(settings, ui) {
-  if (settings['gh-config']) {
-    localStorage.setItem('gh-config', JSON.stringify(settings['gh-config']));
-    ['gh-token', 'gh-owner', 'gh-repo'].forEach((id) => {
-      const key = id.replace(/-([a-z])/g, (_, c) => c.toUpperCase()) + 'Input';
-      if (ui[key] && settings['gh-config'][id] !== undefined) {
-        ui[key].value = settings['gh-config'][id];
-      }
-    });
-  }
-
   const toggles = {
     'ai-features-enabled': 'aiFeaturesToggle',
     'ai-only-existing-tags': 'aiOnlyExistingTagsToggle',
