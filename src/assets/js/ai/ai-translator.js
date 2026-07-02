@@ -10,7 +10,6 @@ import {
   restoreTranslations,
   refreshAITranslationUI,
 } from './ai-translator-ui.js';
-import { runTranslation } from './ai-translator-core.js';
 import { getSupportedLocales } from './ai-translator-utils.js';
 
 export { ensureAllTranslationsReady } from './ai-translator-core.js';
@@ -62,7 +61,14 @@ export async function initAITranslator(ui, updateCallback) {
       .checked
       ? 'block'
       : 'none';
-    refreshAITranslationUI(ui, updateCallback);
+    if (ui.aiTranslateToggle.checked) {
+      // Re-enabling rebuilds the panels empty; refill them from the draft so
+      // the next sync reads back the saved translations, not blanks.
+      const draft = drafts.find((d) => d.id === currentDraftId);
+      restoreTranslations(ui, (draft && draft.translations) || {}, updateCallback);
+    } else {
+      refreshAITranslationUI(ui, updateCallback);
+    }
   };
 
   ui.aiTranslationLocalesContainer.addEventListener('change', (e) => {
@@ -103,7 +109,7 @@ export async function initAITranslator(ui, updateCallback) {
           `details[data-locale="${locale}"]`,
         );
         const btn = details?.querySelector('.translate-btn');
-        if (btn) btn.click();
+        if (btn) {btn.click();}
       });
     };
   }

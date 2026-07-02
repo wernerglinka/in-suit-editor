@@ -231,19 +231,27 @@ export function loadSections(draft) {
   if (!Array.isArray(draft.sections)) {
     draft.sections = [];
   }
+  // Bind synchronously: any sync firing before the schema resolves reads
+  // ui.getSections(), and a stale binding here would overwrite — and persist —
+  // this draft's sections with the previous draft's array (or the initial []).
+  sections = draft.sections;
   // Schema-driven types need the schema loaded before they can render, and
   // source-backed fields need the site data; warm both before rendering.
   Promise.all([loadSchema(), loadSiteData()])
     .then(() => {
-      sections = draft.sections;
+      // Only render if this draft is still the loaded one.
+      if (currentDraft !== draft) {
+        return;
+      }
       render();
       // Re-emit now that the schema is loaded: the first preview may have
       // run through the schema-less fallback (bare image paths, no defaults).
       onChangeRef();
     })
     .catch(() => {
-      sections = draft.sections;
-      render();
+      if (currentDraft === draft) {
+        render();
+      }
     });
 }
 

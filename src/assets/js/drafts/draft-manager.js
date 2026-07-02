@@ -95,7 +95,9 @@ export async function deleteDraft(id, ui, createNewDraftFn, loadDraftFn, renderL
     confirmText: 'Delete',
     confirmClass: 'btn btn-danger'
   });
-  if (!confirmed) {
+  // customConfirm resolves the dialog's returnValue string; the Cancel button
+  // yields the truthy 'cancel', so only an explicit confirm may delete.
+  if (confirmed !== 'confirm') {
     return;
   }
   await deleteImagesForDraft(id);

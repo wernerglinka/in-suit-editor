@@ -13,11 +13,21 @@ export function currentUser() {
 }
 
 /**
- * @returns {string|null} Bearer token for the signed-in user.
+ * Bearer token for the signed-in user. Uses the widget's jwt(), which
+ * refreshes an expired access token, so a long editing session can still
+ * publish; falls back to the stored token if the refresh fails.
+ * @returns {Promise<string|null>} The token, or null when signed out.
  */
-export function accessToken() {
+export async function accessToken() {
   const user = currentUser();
-  return user && user.token ? user.token.access_token : null;
+  if (!user) {
+    return null;
+  }
+  try {
+    return await user.jwt();
+  } catch {
+    return user.token ? user.token.access_token : null;
+  }
 }
 
 /**

@@ -89,6 +89,12 @@ export { RENDER_BACKEND_HINT };
  * @return {Promise<void>}
  */
 export async function updatePreview(currentId, drafts, ui) {
+  // A debounced call can fire after the user switched drafts; rendering it
+  // would show (and inline-edit against) the wrong draft.
+  const activeId = localStorage.getItem('current-draft-id');
+  if (activeId && currentId !== activeId) {
+    return;
+  }
   const draft = drafts.find((d) => d.id === currentId);
   if (!draft) {
     return;
@@ -113,10 +119,19 @@ export async function updatePreview(currentId, drafts, ui) {
   await renderPreviewFrame(ui, ...args);
 }
 
+/** Monotonic render counter: only the newest in-flight render may commit. */
+let renderSeq = 0;
+
+/** The load handler of the last committed render, so a newer render can
+ * detach it before it fires against the newer document with stale data. */
+let pendingLoadHandler = null;
+
 /**
  * Fetches the rendered HTML for the draft and swaps it into the preview iframe,
  * preserving scroll position across the reload. On failure, writes a short
  * notice into the frame and leaves the YAML view as the usable fallback.
+ * Renders are sequenced: a slower, older fetch that resolves after a newer one
+ * is dropped instead of overwriting the fresh document.
  * @param {Object} ui - The UI elements.
  * @param {...any} args - The buildFrontmatter arguments.
  * @return {Promise<void>}
@@ -126,6 +141,7 @@ async function renderPreviewFrame(ui, ...args) {
   if (!frame) {
     return;
   }
+  const seq = ++renderSeq;
   const draft = args[0];
   const { doc, body, isContent } = buildFrontmatter(...args);
   const frontmatter = { ...doc, bodyMode: isContent ? 'content' : 'sections', contents: body };
@@ -154,18 +170,27 @@ async function renderPreviewFrame(ui, ...args) {
     html = renderNotice('Live preview unavailable', unavailableDetail(NETLIFY_DEV_HINT));
   }
 
+  if (seq !== renderSeq) {
+    // A newer render started while this one was in flight; let it win.
+    return;
+  }
+
   const prevScroll = frame.contentWindow ? frame.contentWindow.scrollY : 0;
-  frame.addEventListener(
-    'load',
-    () => {
-      if (frame.contentWindow) {
-        frame.contentWindow.scrollTo(0, prevScroll);
-      }
-      annotateInlineFields(frame, draft);
-      wireInlineEditing(frame);
-    },
-    { once: true }
-  );
+  if (pendingLoadHandler) {
+    // The previous document's load hasn't fired yet; detach its handler so it
+    // can't annotate the new document with the old draft's section indexes.
+    frame.removeEventListener('load', pendingLoadHandler);
+  }
+  const onLoad = () => {
+    pendingLoadHandler = null;
+    if (frame.contentWindow) {
+      frame.contentWindow.scrollTo(0, prevScroll);
+    }
+    annotateInlineFields(frame, draft);
+    wireInlineEditing(frame);
+  };
+  pendingLoadHandler = onLoad;
+  frame.addEventListener('load', onLoad, { once: true });
   frame.srcdoc = html;
 }
 
@@ -212,9 +237,34 @@ function annotateInlineFields(frame, draft) {
   });
 }
 
-/** Tags the first matching element under `wrap` with a field path, once. */
+/**
+ * Finds the shallowest match for a selector under `wrap`. A section's own
+ * field (e.g. its `.title`) sits closer to the wrapper than the same class
+ * inside nested items (a slide's `.title`), so DOM depth disambiguates where
+ * document order (querySelector's first match) would pick the wrong one.
+ * @param {Element} wrap - The rendered section wrapper.
+ * @param {string} selector - The field's class selector.
+ * @return {Element|null} The shallowest matching element, or null.
+ */
+function shallowestIn(wrap, selector) {
+  let best = null;
+  let bestDepth = Infinity;
+  for (const el of wrap.querySelectorAll(selector)) {
+    let depth = 0;
+    for (let n = el.parentElement; n && n !== wrap; n = n.parentElement) {
+      depth++;
+    }
+    if (depth < bestDepth) {
+      best = el;
+      bestDepth = depth;
+    }
+  }
+  return best;
+}
+
+/** Tags the shallowest matching element under `wrap` with a field path, once. */
 function tagField(wrap, selector, path, isMarkdown) {
-  const el = wrap.querySelector(selector);
+  const el = shallowestIn(wrap, selector);
   if (el && !el.dataset.field) {
     el.dataset.field = path;
     if (isMarkdown) {
@@ -252,7 +302,10 @@ function annotateSectionFields(wrap, section) {
     // Only ctas with a url render, in order; map each rendered anchor back to
     // its true index in the section's ctas array (the form's index).
     const validIndexes = section.ctas.map((c, idx) => (c && c.url ? idx : -1)).filter((idx) => idx >= 0);
-    const anchors = wrap.querySelectorAll('.ctas a');
+    // Scope to the section's own ctas block (the shallowest one), so anchors
+    // in nested items (per-slide ctas) aren't mapped to section-level paths.
+    const ctasBlock = shallowestIn(wrap, '.ctas');
+    const anchors = ctasBlock ? ctasBlock.querySelectorAll('a') : [];
     anchors.forEach((a, n) => {
       if (n < validIndexes.length) {
         wrapCtaLabel(a, `ctas.${validIndexes[n]}.label`);

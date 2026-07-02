@@ -54,6 +54,9 @@ export async function customConfirm(ui, message, options = {}) {
     confirmBtn.className = options.confirmClass;
   }
 
+  // Esc closes a <dialog> without touching returnValue, so a value left over
+  // from a previous open would otherwise be resolved as this open's choice.
+  ui.confirmDialog.returnValue = '';
   ui.confirmDialog.showModal();
   return new Promise((resolve) => {
     ui.confirmDialog.addEventListener(

@@ -33,7 +33,12 @@ window.sync = doSync;
  * Loads a draft by ID and refreshes the draft list.
  * @param {string} id - The draft ID.
  */
-const doLoadDraft = (id) => loadDraft(id, ui, () => renderList(ui, doLoadDraft), tagEditor);
+const doLoadDraft = (id) => {
+  // Drop any pending preview for the outgoing draft: it captured the old id
+  // and would re-render (and annotate) the old draft over the new one.
+  debouncedPreview.cancel();
+  return loadDraft(id, ui, () => renderList(ui, doLoadDraft), tagEditor);
+};
 
 /**
  * The tag editor component instance.

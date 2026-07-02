@@ -13,8 +13,11 @@
  */
 export function debounce(fn, delay) {
   let timeoutId;
-  return (...args) => {
+  const debounced = (...args) => {
     clearTimeout(timeoutId);
     timeoutId = setTimeout(() => fn(...args), delay);
   };
+  /** Drops any pending invocation (e.g. when the target it captured is stale). */
+  debounced.cancel = () => clearTimeout(timeoutId);
+  return debounced;
 }

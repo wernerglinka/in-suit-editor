@@ -87,6 +87,9 @@ function pickPage(ui, items) {
       },
       { once: true }
     );
+    // Esc leaves returnValue untouched; clear the previous pick so dismissing
+    // the dialog can't silently reopen the last-chosen page.
+    ui.openSiteDialog.returnValue = '';
     ui.openSiteDialog.showModal();
   });
 }

@@ -52,7 +52,7 @@ export async function publish(ui, draft, mode) {
     const images = [];
     for (const img of draft.imageFiles || []) {
       const data = await getImage(img.id);
-      if (!data) continue;
+      if (!data) {continue;}
       images.push({ name: img.name, base64: await bufferToBase64(data) });
     }
 
@@ -60,7 +60,7 @@ export async function publish(ui, draft, mode) {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
-        Authorization: `Bearer ${accessToken()}`,
+        Authorization: `Bearer ${await accessToken()}`,
       },
       body: JSON.stringify({ mode, slug, markdown, images, pageType: pageTypeOf(draft) }),
     });

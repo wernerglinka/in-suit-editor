@@ -24,13 +24,16 @@ export async function initTagSuggestions(ui, updateCallback) {
    * Fetches the tags schema JSON.
    * @return {Promise<Object>} The tags schema.
    */
-  const fetchSchema = async () =>
-    !tagsSchema &&
-    (tagsSchema = await (
-      await fetch(
-        `${window.PATH_PREFIX || '/'}${window.CURRENT_LOCALE || 'en'}/tags-schema.json`,
-      )
-    ).json());
+  const fetchSchema = async () => {
+    if (!tagsSchema) {
+      tagsSchema = await (
+        await fetch(
+          `${window.PATH_PREFIX || '/'}${window.CURRENT_LOCALE || 'en'}/tags-schema.json`,
+        )
+      ).json();
+    }
+    return tagsSchema;
+  };
 
   try {
     await LanguageModel.availability({
