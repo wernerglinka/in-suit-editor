@@ -73,8 +73,7 @@ body.admin {
   max-width: 72rem;
 }
 
-/* The toolbar is its own full-width row above the panes: pane toggles on the
-   left, the document actions (copy/save/publish) on the right. */
+/* The toolbar is its own full-width row of pane toggles above the panes. */
 .editor-toolbar {
   flex-basis: 100%;
   display: flex;
@@ -82,11 +81,6 @@ body.admin {
   align-items: center;
   gap: 0.5rem;
   border: none;
-}
-
-.editor-toolbar .editor-actions {
-  margin-left: auto;
-  margin-top: 0;
 }
 
 .pane-toggle {
