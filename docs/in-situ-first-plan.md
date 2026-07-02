@@ -120,18 +120,34 @@ single source — no editor-specific annotations in library components.
 Where a component's markup genuinely can't be matched generically, skip
 it and rely on the section-settings bridge (never mis-tag).
 
-## Phase 3 — structure on the page
+## Phase 3 — structure on the page (done)
 
 Goal: the common structural gestures without opening the drawer.
 
-- Between-section "+" inserter on hover, offering the same type list as
-  `populateAddMenu` (schema-driven).
-- Hover toolbar grows move up/down, disable, delete — extracted from the
-  section-card button handlers in `section-builder.js` into exported
-  by-index operations both surfaces call.
-- A newly inserted section is empty; auto-open its section settings in the
-  drawer (materialized defaults often need content before anything renders
-  to click on).
+Shipped:
+
+- `section-builder.js` exports by-index operations — `moveSection`,
+  `removeSection`, `toggleSectionDisabled`, `insertSection`,
+  `listSectionTypes`, `sectionCount` — and its card controls and add menu
+  now call them, so both surfaces share one implementation.
+- The hover toolbar grew ↑ ↓ ⊘ ✕ ahead of ⚙ Section settings (bounds-aware:
+  ↑/↓ disable at the ends). Disable removes the section from the rendered
+  page (it stops rendering), so re-enabling lives on the section's card.
+- "+" inserters pinned to the hovered section's top and bottom edges — the
+  actual seam an insert lands at, hidden rather than clamped when the seam
+  is off-screen. Each is a native select styled as a pill, so one click
+  opens the schema-driven type list (same source as the drawer's add menu).
+  Inserting opens the new section's card via `openSectionSettings` (a new
+  section is empty; often nothing renders to click on).
+- A 400ms hide grace lets the cursor cross the margin gap between sections
+  to reach a seam's "+".
+
+Verified under `netlify dev` on the qa-inline-editing fixture: move down
+reorders the emitted document, disable removes the section from the page
+and emits `isDisabled: true`, the top-edge inserter lands a banner at the
+right index and opens its card in Page setup, deleting it from the page
+removes it, and the drawer's own controls (which now call the shared ops)
+restore the original order.
 
 ## Phase 4 — hardening the render path
 

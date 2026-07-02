@@ -7,6 +7,14 @@ import { buildFrontmatter, generateMarkdown } from '../utils/markdown-utils.js';
 // Cycle note: editing-surface imports probeRenderBackend from this module.
 // Both uses are runtime-only (inside functions), so the cycle is harmless.
 import { openSectionSettings } from './editing-surface.js';
+import {
+  moveSection,
+  removeSection,
+  toggleSectionDisabled,
+  insertSection,
+  listSectionTypes,
+  sectionCount
+} from './section-builder.js';
 
 /** The render endpoint (a Netlify Function; available locally under `netlify dev`). */
 const PREVIEW_ENDPOINT = '/.netlify/functions/preview';
@@ -209,15 +217,30 @@ const INLINE_EDIT_STYLE = `
   img[data-field-image] { cursor: pointer; }
   img[data-field-image]:hover { outline: 1px dashed rgba(80,120,255,.55); outline-offset: 3px; }
   .editor-section-toolbar {
-    position: fixed; z-index: 2147483647; display: none;
+    position: fixed; z-index: 2147483647; display: none; gap: 4px;
     font: 12px/1 system-ui, sans-serif;
   }
   .editor-section-toolbar button {
     all: unset; cursor: pointer; padding: 5px 10px; border-radius: 999px;
     background: rgba(80,120,255,.92); color: #fff; font: inherit;
-    box-shadow: 0 1px 4px rgba(0,0,0,.25);
+    box-shadow: 0 1px 4px rgba(0,0,0,.25); text-align: center;
   }
   .editor-section-toolbar button:hover { background: rgba(60,95,220,1); }
+  .editor-section-toolbar button:disabled { opacity: .4; cursor: default; }
+  .editor-section-toolbar button:disabled:hover { background: rgba(80,120,255,.92); }
+  select.editor-insert {
+    position: fixed; z-index: 2147483647; display: none;
+    transform: translate(-50%, -50%);
+    width: 30px; height: 30px; border-radius: 50%; border: 0; padding: 0;
+    appearance: none; -webkit-appearance: none; text-align: center;
+    background: rgba(80,120,255,.92); color: #fff;
+    font: 17px/30px system-ui, sans-serif; cursor: pointer;
+    box-shadow: 0 1px 4px rgba(0,0,0,.25);
+  }
+  select.editor-insert:hover { background: rgba(60,95,220,1); }
+  select.editor-insert option {
+    background: #fff; color: #222; font: 13px/1.5 system-ui, sans-serif;
+  }
 `;
 
 /**
@@ -775,12 +798,15 @@ function wireInlineEditing(frame) {
 }
 
 /**
- * A floating per-section toolbar in the preview frame: hovering a section
- * shows an "Section settings" button at its top-right corner, which switches
- * to Page setup opened at that section's card — the bridge to everything
- * inline editing can't express (structure, empty fields, images without a
- * unique match). One toolbar element serves all sections, repositioned on
- * hover; it lives in the frame's body so it scrolls with the content.
+ * The floating per-section chrome in the preview frame. Hovering a section
+ * shows a toolbar at its top-right — move up/down, disable, delete, and
+ * "Section settings" (the bridge to Page setup opened at that section's
+ * card) — plus a "+" inserter pinned to each of the section's edges,
+ * offering the schema's section types. All structure actions call the same
+ * by-index operations the section cards use (section-builder.js), so both
+ * surfaces stay in step. One set of elements serves all sections,
+ * repositioned per hover and on scroll, clamped into the viewport and below
+ * a fixed/sticky site header.
  * @param {Document} doc - The preview frame's document.
  */
 function wireSectionToolbar(doc) {
@@ -789,51 +815,126 @@ function wireSectionToolbar(doc) {
   }
   const toolbar = doc.createElement('div');
   toolbar.className = 'editor-section-toolbar';
-  const btn = doc.createElement('button');
-  btn.type = 'button';
-  btn.textContent = '⚙ Section settings';
-  toolbar.append(btn);
+  const buttons = {};
+  for (const [key, symbol, title] of [
+    ['up', '↑', 'Move section up'],
+    ['down', '↓', 'Move section down'],
+    ['hide', '⊘', 'Disable this section (re-enable on its card in Page setup)'],
+    ['remove', '✕', 'Delete this section'],
+    ['settings', '⚙ Section settings', "Open this section's settings in Page setup"]
+  ]) {
+    const b = doc.createElement('button');
+    b.type = 'button';
+    b.textContent = symbol;
+    b.title = title;
+    buttons[key] = b;
+    toolbar.append(b);
+  }
   doc.body.append(toolbar);
 
-  let current = null;
-  btn.addEventListener('click', () => {
-    if (current) {
-      openSectionSettings(current.dataset.sectionIndex);
+  // The inserters are native selects styled as "+" pills: clicking one opens
+  // the type list directly, one interaction to insert. Their option lists
+  // come from the same schema the drawer's add menu uses.
+  const makeInserter = () => {
+    const sel = doc.createElement('select');
+    sel.className = 'editor-insert';
+    sel.title = 'Insert a section here';
+    const plus = doc.createElement('option');
+    plus.value = '';
+    plus.textContent = '+';
+    sel.append(plus);
+    for (const type of listSectionTypes()) {
+      const opt = doc.createElement('option');
+      opt.value = type.value;
+      opt.textContent = type.label;
+      sel.append(opt);
     }
-  });
+    doc.body.append(sel);
+    return sel;
+  };
+  const insertAbove = makeInserter();
+  const insertBelow = makeInserter();
 
-  // Fixed-position at the hovered section's top-right, clamped below the
-  // site's sticky header and into the viewport, so the button stays reachable
-  // on a tall section and never hides under the header.
+  let current = null;
+  let hideTimer = null;
+  const indexOf = () => Number(current.dataset.sectionIndex);
+  const hideAll = () => {
+    toolbar.style.display = 'none';
+    insertAbove.style.display = 'none';
+    insertBelow.style.display = 'none';
+  };
+
+  buttons.settings.onclick = () => current && openSectionSettings(current.dataset.sectionIndex);
+  buttons.up.onclick = () => current && moveSection(indexOf(), -1);
+  buttons.down.onclick = () => current && moveSection(indexOf(), 1);
+  buttons.hide.onclick = () => current && toggleSectionDisabled(indexOf());
+  buttons.remove.onclick = () => current && removeSection(indexOf());
+  const onInsert = (sel, offset) => async () => {
+    const type = sel.value;
+    sel.value = '';
+    if (!current || !type) {
+      return;
+    }
+    // The new section is empty, so nothing may render to click on; open its
+    // card in Page setup so the user can fill it in.
+    const at = await insertSection(type, indexOf() + offset);
+    openSectionSettings(String(at));
+  };
+  insertAbove.onchange = onInsert(insertAbove, 0);
+  insertBelow.onchange = onInsert(insertBelow, 1);
+
   const position = () => {
     if (!current) {
       return;
     }
     const rect = current.getBoundingClientRect();
     const viewH = doc.documentElement.clientHeight;
-    // The site banner floats over content when fixed/sticky; keep the button
+    // The site banner floats over content when fixed/sticky; keep the chrome
     // below it. A header that scrolls away needs no clamp.
     const header = doc.querySelector('header');
     const floating = header && /fixed|sticky/.test(doc.defaultView.getComputedStyle(header).position);
     const minTop = floating ? Math.max(8, header.getBoundingClientRect().bottom + 8) : 8;
     if (rect.bottom < minTop + 8 || rect.top > viewH - 8) {
-      toolbar.style.display = 'none';
+      hideAll();
       return;
     }
-    toolbar.style.display = 'block';
+    const index = indexOf();
+    buttons.up.disabled = index === 0;
+    buttons.down.disabled = index >= sectionCount() - 1;
+    toolbar.style.display = 'flex';
     toolbar.style.top = `${Math.min(Math.max(rect.top + 8, minTop), viewH - 40)}px`;
     toolbar.style.right = `${Math.max(8, doc.documentElement.clientWidth - rect.right + 8)}px`;
+    // The inserters pin to the section's actual edges (the seam a click
+    // inserts at) and hide with them rather than clamping: a "+" floating
+    // away from its seam would lie about where the section will land.
+    const midX = rect.left + rect.width / 2;
+    const place = (sel, y) => {
+      if (y < minTop || y > viewH - 8) {
+        sel.style.display = 'none';
+        return;
+      }
+      sel.style.display = 'block';
+      sel.style.top = `${y}px`;
+      sel.style.left = `${midX}px`;
+    };
+    place(insertAbove, rect.top);
+    place(insertBelow, rect.bottom);
   };
 
   doc.addEventListener('scroll', position, { passive: true });
   doc.addEventListener('mouseover', (e) => {
-    if (toolbar.contains(e.target)) {
-      return; // hovering the toolbar itself keeps it where it is
+    clearTimeout(hideTimer);
+    if (toolbar.contains(e.target) || insertAbove.contains(e.target) || insertBelow.contains(e.target)) {
+      return; // hovering the chrome itself keeps it where it is
     }
     const wrap = e.target.closest && e.target.closest('[data-section-index]');
     if (!wrap) {
-      current = null;
-      toolbar.style.display = 'none';
+      // Grace period: the inserters straddle section edges, and reaching one
+      // across a margin gap passes over no-section's-land.
+      hideTimer = setTimeout(() => {
+        current = null;
+        hideAll();
+      }, 400);
       return;
     }
     if (wrap === current) {

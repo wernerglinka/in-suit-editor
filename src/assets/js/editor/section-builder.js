@@ -59,6 +59,88 @@ function newSection(type) {
   return { sectionType: type, ...materializeDefaults(getSectionFields(type)), ...WRAPPER[type] };
 }
 
+/*
+ * By-index section operations, shared by both editing surfaces: the section
+ * cards' header controls call them, and so do the rendered page's hover
+ * toolbar and inserter (editor-logic.js). Each mutates the draft's sections,
+ * re-renders the cards, and fires onChange (persist + preview re-render).
+ */
+
+/**
+ * Swaps a section with its neighbor.
+ * @param {number} index - The section's array index.
+ * @param {number} delta - -1 to move up, 1 to move down.
+ */
+export function moveSection(index, delta) {
+  const to = index + delta;
+  if (index < 0 || index >= sections.length || to < 0 || to >= sections.length) {
+    return;
+  }
+  [sections[index], sections[to]] = [sections[to], sections[index]];
+  render();
+  onChangeRef();
+}
+
+/**
+ * Removes a section.
+ * @param {number} index - The section's array index.
+ */
+export function removeSection(index) {
+  if (index < 0 || index >= sections.length) {
+    return;
+  }
+  sections.splice(index, 1);
+  render();
+  onChangeRef();
+}
+
+/**
+ * Toggles a section's isDisabled flag (a disabled section is kept in the
+ * document but not rendered). Re-enabling happens on the section's card.
+ * @param {number} index - The section's array index.
+ */
+export function toggleSectionDisabled(index) {
+  const section = sections[index];
+  if (!section) {
+    return;
+  }
+  section.isDisabled = !section.isDisabled;
+  render();
+  onChangeRef();
+}
+
+/**
+ * Inserts a new empty section of the given type, expanded so the user can
+ * fill it in.
+ * @param {string} type - A schema section type.
+ * @param {number} index - Where to insert (clamped into range).
+ * @return {Promise<number>} The inserted section's index.
+ */
+export async function insertSection(type, index) {
+  await loadSchema();
+  const at = Math.max(0, Math.min(index, sections.length));
+  const added = newSection(type);
+  expanded.add(added);
+  sections.splice(at, 0, added);
+  render();
+  onChangeRef();
+  return at;
+}
+
+/**
+ * The schema's section types with display labels, for any surface offering
+ * an add menu. Empty until the schema has loaded.
+ * @return {Array<{value: string, label: string}>} The type list.
+ */
+export function listSectionTypes() {
+  return getSectionTypes().map((type) => ({ value: type, label: typeLabel(type) }));
+}
+
+/** @return {number} How many sections the loaded draft has. */
+export function sectionCount() {
+  return sections.length;
+}
+
 /**
  * The editor context passed to the schema-driven form renderer, giving its
  * generic image widget access to the draft's image pipeline without coupling
@@ -174,16 +256,7 @@ function renderCard(section, index) {
     b.textContent = symbol;
     b.title = title;
     b.disabled = (act === 'up' && index === 0) || (act === 'down' && index === sections.length - 1);
-    b.onclick = () => {
-      if (act === 'remove') {
-        sections.splice(index, 1);
-      } else {
-        const to = act === 'up' ? index - 1 : index + 1;
-        [sections[index], sections[to]] = [sections[to], sections[index]];
-      }
-      render();
-      onChangeRef();
-    };
+    b.onclick = () => (act === 'remove' ? removeSection(index) : moveSection(index, act === 'up' ? -1 : 1));
     controls.append(b);
   }
   header.append(typeEl, controls);
@@ -277,15 +350,9 @@ export function initSectionBuilder(ui, onChange) {
     addSelect.onchange = async () => {
       const type = addSelect.value;
       addSelect.value = ''; // snap back to the placeholder for the next add
-      if (!type) {
-        return;
+      if (type) {
+        await insertSection(type, sections.length);
       }
-      await loadSchema();
-      const added = newSection(type);
-      expanded.add(added); // open the new section so the user can fill it in
-      sections.push(added);
-      render();
-      onChangeRef();
     };
   }
 }

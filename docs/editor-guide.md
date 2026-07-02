@@ -241,13 +241,20 @@ place until they differ (the same applies to two fields using the identical
 image file). Edit one of them in **Page setup** first and both become
 clickable.
 
-This edits what is already there; adding a field that's currently empty, or
-anything structural (adding, reordering, or removing sections), is done in
-**Page setup**. You don't have to go looking for the right form: hover any
-section on the page and a **⚙ Section settings** button appears at its top
-right — click it and Page setup opens with that section's card expanded and
-scrolled into view. A structural change takes the moment the preview needs
-to re-render; a text tweak shows as you type.
+Structure is on the page too. Hover any section and a small toolbar appears
+at its top right: move the section up or down (**↑ ↓**), hide it (**⊘** —
+the section stays in the document but stops rendering; re-enable it on its
+card in Page setup), delete it (**✕**), and **⚙ Section settings**, which
+opens Page setup with that section's card expanded and scrolled into view.
+While a section is hovered, a **+** button also sits at its top and bottom
+edge — click one and pick a section type to insert right there. A new
+section starts empty, so the editor takes you straight to its settings card
+to fill it in.
+
+What still needs **Page setup** directly: filling a field that's currently
+empty (nothing renders for it, so there's nothing to click), and re-enabling
+a hidden section. A structural change takes the moment the preview needs to
+re-render; a text tweak shows as you type.
 
 ## The Markdown editor
 
