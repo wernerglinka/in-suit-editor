@@ -703,11 +703,25 @@ body.admin {
   gap: 0.5rem;
 }
 
+/*
+  The document actions are a full-width bar beneath the panes, sticky at the
+   viewport bottom so copy/save/publish stay in reach whichever panels are
+   open and however far the form or page has scrolled. order keeps the bar
+   last on the small-screen column layout, where the panes carry orders.
+*/
 .editor-actions {
   display: flex;
   gap: 1rem;
-  margin-top: 1rem;
   flex-wrap: wrap;
+  justify-content: center;
+  flex-basis: 100%;
+  order: 4;
+  position: sticky;
+  bottom: 0;
+  z-index: 5;
+  padding: 0.75rem 0;
+  background: var(--color-background);
+  border-top: 1px solid var(--color-border-light);
 }
 
 .editor-preview {

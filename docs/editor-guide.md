@@ -135,8 +135,9 @@ you just added opens automatically so you can fill it in.
 The editor is three panels, each with its own toggle in the toolbar at the
 top: **Drafts** (the list on the left), **Page setup** (this form), and
 **Page** (the rendered page). The document actions — Copy Markdown, Save,
-and Publish — sit beneath the form, so publishing means opening **Page
-setup** first. A page that already has sections opens as just the page, with Page
+and Publish — live in a bar along the bottom of the editor that stays on
+screen as you scroll, whichever panels are open. A page that already has
+sections opens as just the page, with Page
 setup closed: for reading and text edits the page itself is the whole
 editor, and you open **Page setup** only for structure or metadata. A new
 draft (or a simple Markdown page) opens with Page setup showing, since an
