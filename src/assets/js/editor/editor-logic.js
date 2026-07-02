@@ -15,6 +15,7 @@ import {
   listSectionTypes,
   sectionCount
 } from './section-builder.js';
+import { accessToken } from './identity.js';
 
 /** The render endpoint (a Netlify Function; available locally under `netlify dev`). */
 const PREVIEW_ENDPOINT = '/.netlify/functions/preview';
@@ -159,9 +160,16 @@ async function renderPreviewFrame(ui, ...args) {
 
   let html;
   try {
+    // The deployed render backend requires a signed-in Identity user (see
+    // docs/security-model.md); locally it runs auth-free and no token exists.
+    const headers = { 'Content-Type': 'application/json' };
+    const token = await accessToken();
+    if (token) {
+      headers.Authorization = `Bearer ${token}`;
+    }
     const res = await fetch(PREVIEW_ENDPOINT, {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
+      headers,
       body: JSON.stringify({ frontmatter })
     });
     html = await res.text();
@@ -171,6 +179,13 @@ async function renderPreviewFrame(ui, ...args) {
       // rendered document. The function itself never returns 404, so in
       // production this branch effectively doesn't happen.
       html = renderNotice('Live preview unavailable', unavailableDetail(NETLIFY_DEV_HINT));
+    } else if (res.status === 401) {
+      // Signed out (or the session expired) on the deployed site.
+      html = renderNotice(
+        'Sign in to see the live preview',
+        'The live preview is available to signed-in editors. Sign in and it returns; ' +
+          'your content is safe, and the YAML view still shows it in the meantime.'
+      );
     } else if (!res.ok) {
       // A real backend error (e.g. 500). Show the raw body to a developer; keep
       // it plain for a content editor.

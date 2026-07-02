@@ -6,16 +6,20 @@ the guide is behind — say so.
 
 ## Opening the editor
 
-The editor lives at `/admin/` on the site. It is gated by sign-in: fresh
-visitors see a sign-in prompt, and the editor appears once you sign in
-with your Netlify Identity account (invite-only; ask the site owner for
-an invite).
+The editor lives at `/admin/` on the site. The page is linked from
+nowhere — no menu entry, no sitemap, no search indexing — so you reach it
+by typing the URL the site owner shared with you. It is gated by sign-in:
+fresh visitors see only a sign-in prompt, and the editor appears once you
+sign in with your Netlify Identity account (invite-only; ask the site
+owner for an invite). The live preview and publishing are enforced
+server-side for signed-in users, so nothing of consequence works without
+the account — see `docs/security-model.md` for the full arrangement,
+including the deployment checklist for site owners.
 
 For local development without Identity, append `?admin=true` to the URL
 (`http://localhost:3000/admin/?admin=true`). This sets a flag in your
-browser so subsequent visits stay unlocked. It only reveals the editing
-surface — publishing still requires sign-in, and the server enforces
-that regardless of what the browser shows.
+browser so subsequent visits stay unlocked. The flag works on localhost
+only; the deployed site ignores it.
 
 ## Drafts
 

@@ -5,6 +5,9 @@
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <title>{{ seo.title }}</title>
     <meta name="description" content="{{ seo.description }}" />
+    <!-- The admin is unlisted by design (docs/security-model.md); the page is
+         `private` so the SEO plugin skips it, hence the directive lives here. -->
+    <meta name="robots" content="noindex,nofollow" />
     <meta name="color-scheme" content="light dark" />
     <link rel="icon" type="image/png" sizes="32x32" href="/assets/icons/favicon-32x32.png" />
     <link rel="preconnect" href="https://fonts.googleapis.com" />
@@ -53,9 +56,13 @@
     <script>
       // Reveal the editor for signed-in Netlify Identity users; everyone else
       // gets a sign-in prompt. ?admin=true (or the localStorage flag it sets)
-      // remains as a back door for local dev, where Identity isn't proxied.
-      // Visibility is a courtesy either way — the publish Function is the
-      // security boundary.
+      // is a local-dev-only shortcut — Identity isn't proxied by plain dev
+      // servers — and is ignored on the deployed site, where only a session
+      // reveals the surface. Visibility is a courtesy either way — the
+      // Functions are the security boundary (see docs/security-model.md).
+      const isLocalDev =
+        /^(localhost|127\.0\.0\.1|\[?::1\]?)$/.test(window.location.hostname) ||
+        window.location.hostname.endsWith('.local');
       const urlParams = new URLSearchParams(window.location.search);
       const adminFromUrl = urlParams.get('admin') === 'true';
       const adminFromStorage = localStorage.getItem('admin') === 'true';
@@ -67,7 +74,7 @@
         window.location.search = urlParams.toString();
       }
 
-      const isAdmin = adminFromUrl || adminFromStorage;
+      const isAdmin = isLocalDev && (adminFromUrl || adminFromStorage);
       const revealEditor = () => {
         document.querySelectorAll('.admin-only').forEach((el) => (el.style.display = 'initial'));
         const prompt = document.getElementById('admin-signin-prompt');

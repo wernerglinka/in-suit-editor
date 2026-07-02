@@ -1,14 +1,20 @@
 ---
 layout: admin.njk
 bodyClass: 'admin'
-navigation:
-  navLabel: 'Admin'
-  navIndex: 6
+# Deliberately unlisted: no `navigation` block (no menu entry), `private`
+# (keeps the page out of the sitemap), and `seo.noIndex` (the robots
+# directive when the SEO plugin processes the page; admin.njk also hardcodes
+# a noindex meta for builds where the plugin skips it). The admin is reached
+# by typing its URL, never by a link, listing, or search engine. To rotate
+# the URL, rename this page's directory (src/admin/ -> src/<anything>/);
+# nothing else references the path. See docs/security-model.md.
+private: true
 seo:
   title: Admin – Create Blog Post
   description: 'In-site editor with Chrome built-in AI.'
   socialImage: '/assets/images/metalsmith2025-starter-social.png'
   canonicalOverwrite: ''
+  noIndex: true
 ---
 
 <h1>Create Blog Post</h1>

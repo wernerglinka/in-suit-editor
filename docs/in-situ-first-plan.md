@@ -149,18 +149,31 @@ right index and opens its card in Page setup, deleting it from the page
 removes it, and the drawer's own controls (which now call the shared ops)
 restore the original order.
 
-## Phase 4 — hardening the render path
+## Phase 4 — hardening the render path (done)
 
 Promotion makes the preview Function the hot path for every editor
-keystroke (debounced), so the review's preview findings get addressed here:
+keystroke (debounced), so the review's preview findings were addressed
+here, plus the decided JWT gate. The full arrangement — including the
+Netlify/GitHub settings that live outside this repo and the
+rotate-the-admin-URL procedure — is documented in
+`docs/security-model.md`.
 
-- Application-level payload cap and section-nesting depth cap in
-  `netlify/functions/preview.js`; validate `sectionType` against
-  `[a-z0-9-]+` before it reaches the dynamic include path.
-- Consider requiring an Identity JWT for preview on the deployed site
-  (anonymous use of the render backend serves no editor need; keep it
-  auth-free locally).
-- Keep 500 bodies generic in production (no server paths).
+Shipped:
+
+- `preview.js` requires a verified Identity user on the deployed site
+  (`context.clientContext.user`; any role), stays auth-free under
+  `netlify dev` (`NETLIFY_DEV`). The client attaches the token via
+  `accessToken()`; a 401 renders a plain "sign in to see the preview"
+  notice in the frame.
+- Input caps independent of auth: 1MB body, 200 sections, nesting depth
+  24, `sectionType` validated against `[a-z0-9-]+` before the dynamic
+  include path. 500 bodies are generic except under local dev.
+- Sign-in-first admin: the `?admin=true` reveal flag now works on
+  localhost only; deployed visitors see nothing but the sign-in prompt.
+- The admin page is unlisted: no `navigation` block (the menu is opt-in),
+  `seo.noIndex: true` (robots meta + out of the sitemap), deliberately
+  not in robots.txt. URL rotation = rename `src/admin/`; nothing else
+  references the path.
 
 ## Cross-cutting
 
