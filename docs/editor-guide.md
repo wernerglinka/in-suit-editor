@@ -241,10 +241,13 @@ place until they differ (the same applies to two fields using the identical
 image file). Edit one of them in **Page setup** first and both become
 clickable.
 
-This edits text that is already there; adding a field that's currently empty, or
-anything structural (adding, reordering, or removing sections, choosing images),
-is done in **Page setup**. A structural change takes the moment the
-preview needs to re-render; a text tweak shows as you type.
+This edits what is already there; adding a field that's currently empty, or
+anything structural (adding, reordering, or removing sections), is done in
+**Page setup**. You don't have to go looking for the right form: hover any
+section on the page and a **⚙ Section settings** button appears at its top
+right — click it and Page setup opens with that section's card expanded and
+scrolled into view. A structural change takes the moment the preview needs
+to re-render; a text tweak shows as you type.
 
 ## The Markdown editor
 

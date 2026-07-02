@@ -104,6 +104,27 @@ export function initEditingSurface() {
 }
 
 /**
+ * Switches to Page setup opened at one section's card — the bridge from the
+ * rendered page to everything inline editing can't express. Not persisted:
+ * following the bridge is navigation, not a view preference.
+ * @param {string|number} index - The section's array index.
+ */
+export function openSectionSettings(index) {
+  applyView('setup', false);
+  const card = document.querySelector(`#sections-list .section-card[data-section-index="${index}"]`);
+  if (!card) {
+    return;
+  }
+  if (card.classList.contains('is-collapsed')) {
+    const header = card.querySelector('.section-card-header');
+    if (header) {
+      header.click();
+    }
+  }
+  card.scrollIntoView({ behavior: 'smooth', block: 'start' });
+}
+
+/**
  * Applies the default view for a freshly loaded draft, unless the user has
  * already chosen one. Opens on the Page view for a sections draft whose page
  * can render; opens on Page setup for anything else.

@@ -4,6 +4,9 @@
  */
 
 import { buildFrontmatter, generateMarkdown } from '../utils/markdown-utils.js';
+// Cycle note: editing-surface imports probeRenderBackend from this module.
+// Both uses are runtime-only (inside functions), so the cycle is harmless.
+import { openSectionSettings } from './editing-surface.js';
 
 /** The render endpoint (a Netlify Function; available locally under `netlify dev`). */
 const PREVIEW_ENDPOINT = '/.netlify/functions/preview';
@@ -205,6 +208,16 @@ const INLINE_EDIT_STYLE = `
   [data-field-markdown]:hover { outline: 1px dashed rgba(80,120,255,.55); outline-offset: 3px; }
   img[data-field-image] { cursor: pointer; }
   img[data-field-image]:hover { outline: 1px dashed rgba(80,120,255,.55); outline-offset: 3px; }
+  .editor-section-toolbar {
+    position: fixed; z-index: 2147483647; display: none;
+    font: 12px/1 system-ui, sans-serif;
+  }
+  .editor-section-toolbar button {
+    all: unset; cursor: pointer; padding: 5px 10px; border-radius: 999px;
+    background: rgba(80,120,255,.92); color: #fff; font: inherit;
+    box-shadow: 0 1px 4px rgba(0,0,0,.25);
+  }
+  .editor-section-toolbar button:hover { background: rgba(60,95,220,1); }
 `;
 
 /**
@@ -757,6 +770,78 @@ function wireInlineEditing(frame) {
     el.title = 'Click to choose a replacement image';
     el.addEventListener('click', () => openImagePicker(el));
   }
+
+  wireSectionToolbar(doc);
+}
+
+/**
+ * A floating per-section toolbar in the preview frame: hovering a section
+ * shows an "Section settings" button at its top-right corner, which switches
+ * to Page setup opened at that section's card — the bridge to everything
+ * inline editing can't express (structure, empty fields, images without a
+ * unique match). One toolbar element serves all sections, repositioned on
+ * hover; it lives in the frame's body so it scrolls with the content.
+ * @param {Document} doc - The preview frame's document.
+ */
+function wireSectionToolbar(doc) {
+  if (!doc.querySelector('[data-section-index]')) {
+    return;
+  }
+  const toolbar = doc.createElement('div');
+  toolbar.className = 'editor-section-toolbar';
+  const btn = doc.createElement('button');
+  btn.type = 'button';
+  btn.textContent = '⚙ Section settings';
+  toolbar.append(btn);
+  doc.body.append(toolbar);
+
+  let current = null;
+  btn.addEventListener('click', () => {
+    if (current) {
+      openSectionSettings(current.dataset.sectionIndex);
+    }
+  });
+
+  // Fixed-position at the hovered section's top-right, clamped below the
+  // site's sticky header and into the viewport, so the button stays reachable
+  // on a tall section and never hides under the header.
+  const position = () => {
+    if (!current) {
+      return;
+    }
+    const rect = current.getBoundingClientRect();
+    const viewH = doc.documentElement.clientHeight;
+    // The site banner floats over content when fixed/sticky; keep the button
+    // below it. A header that scrolls away needs no clamp.
+    const header = doc.querySelector('header');
+    const floating = header && /fixed|sticky/.test(doc.defaultView.getComputedStyle(header).position);
+    const minTop = floating ? Math.max(8, header.getBoundingClientRect().bottom + 8) : 8;
+    if (rect.bottom < minTop + 8 || rect.top > viewH - 8) {
+      toolbar.style.display = 'none';
+      return;
+    }
+    toolbar.style.display = 'block';
+    toolbar.style.top = `${Math.min(Math.max(rect.top + 8, minTop), viewH - 40)}px`;
+    toolbar.style.right = `${Math.max(8, doc.documentElement.clientWidth - rect.right + 8)}px`;
+  };
+
+  doc.addEventListener('scroll', position, { passive: true });
+  doc.addEventListener('mouseover', (e) => {
+    if (toolbar.contains(e.target)) {
+      return; // hovering the toolbar itself keeps it where it is
+    }
+    const wrap = e.target.closest && e.target.closest('[data-section-index]');
+    if (!wrap) {
+      current = null;
+      toolbar.style.display = 'none';
+      return;
+    }
+    if (wrap === current) {
+      return;
+    }
+    current = wrap;
+    position();
+  });
 }
 
 /**

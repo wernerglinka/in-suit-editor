@@ -106,16 +106,19 @@ images, a testimonial portrait, and hero-slider background images tag with
 correct paths and the click reaches the file input; the all-sections page
 (every image the same file) tags only per-scope-unique ones, all correctly.
 
-Remaining Phase 2 work:
+**Done — the section-settings bridge.** Hovering a section in the frame
+shows a fixed-position "⚙ Section settings" pill at its top-right (one
+element repositioned per hover, clamped into the viewport and below a
+fixed/sticky site header). Clicking it calls
+`openSectionSettings(index)` (editing-surface.js): switches to Page setup
+without persisting the view choice, expands that section's card, scrolls
+to it. This is the bridge to everything inline editing can't express —
+structure, empty fields, and same-valued fields it skips as ambiguous.
 
-- Per-section hover toolbar in the frame: an "Open section settings" button
-  that expands the drawer scrolled to that section's card — the bridge to
-  everything inline editing can't express (including same-valued fields,
-  which inline editing skips as ambiguous).
-- Keep the manifests/`components-schema.json` as the single source: no
-  editor-specific annotations in library components. Where a component's
-  markup genuinely can't be matched generically, skip it and rely on the
-  section-settings bridge (never mis-tag).
+Phase 2 standing rule: the manifests/`components-schema.json` stay the
+single source — no editor-specific annotations in library components.
+Where a component's markup genuinely can't be matched generically, skip
+it and rely on the section-settings bridge (never mis-tag).
 
 ## Phase 3 — structure on the page
 
