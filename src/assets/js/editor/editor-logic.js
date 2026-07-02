@@ -203,6 +203,8 @@ const INLINE_EDIT_STYLE = `
   [data-field][contenteditable]:focus { outline: 2px solid rgba(80,120,255,.9); outline-offset: 3px; cursor: text; }
   [data-field-markdown] { cursor: pointer; }
   [data-field-markdown]:hover { outline: 1px dashed rgba(80,120,255,.55); outline-offset: 3px; }
+  img[data-field-image] { cursor: pointer; }
+  img[data-field-image]:hover { outline: 1px dashed rgba(80,120,255,.55); outline-offset: 3px; }
 `;
 
 /**
@@ -481,6 +483,7 @@ function collectAnnotatable(obj, base) {
   const leaves = [];
   const proseLeaves = [];
   const ctaArrays = [];
+  const imageLeaves = [];
   (function walk(o, prefix) {
     for (const [key, value] of Object.entries(o)) {
       const path = prefix ? `${prefix}.${key}` : key;
@@ -496,6 +499,12 @@ function collectAnnotatable(obj, base) {
         if (typeof value === 'string' && value.trim()) {
           proseLeaves.push(path);
         }
+      } else if (key === 'src') {
+        // An image group's src; matched against rendered <img> elements
+        // rather than text. (A video's provider name never matches one.)
+        if (typeof value === 'string' && value.trim()) {
+          imageLeaves.push({ path, value: value.trim() });
+        }
       } else if ((typeof value === 'string' || typeof value === 'number') && !String(value).includes('\n')) {
         const trimmed = String(value).trim();
         if (trimmed) {
@@ -504,7 +513,7 @@ function collectAnnotatable(obj, base) {
       }
     }
   })(obj, base);
-  return { leaves, proseLeaves, ctaArrays };
+  return { leaves, proseLeaves, ctaArrays, imageLeaves };
 }
 
 /**
@@ -545,8 +554,9 @@ function tagLeavesByValue(scope, leaves, exclude) {
  *   block).
  */
 function annotateItemFields(scope, item, base, hasContainer) {
-  const { leaves, proseLeaves, ctaArrays } = collectAnnotatable(item, base);
+  const { leaves, proseLeaves, ctaArrays, imageLeaves } = collectAnnotatable(item, base);
   tagLeavesByValue(scope, leaves);
+  tagImagesByValue(scope, imageLeaves);
 
   if (!hasContainer) {
     return;
@@ -574,8 +584,43 @@ function annotateItemFields(scope, item, base, hasContainer) {
  * @param {Element[]} claimed - The matched item containers.
  */
 function annotateSectionValues(wrap, section, claimed) {
-  const { leaves } = collectAnnotatable(section, '');
+  const { leaves, imageLeaves } = collectAnnotatable(section, '');
   tagLeavesByValue(wrap, leaves, claimed);
+  tagImagesByValue(wrap, imageLeaves, claimed);
+}
+
+/**
+ * Tags rendered images with their `src` field's path (data-field-image), by
+ * matching the stored value's filename against each <img>'s src. The same
+ * never-guess rules as text: a filename two fields share tags nothing, and
+ * only a unique match tags. Clicking a tagged image opens its form field's
+ * image picker (see wireInlineEditing).
+ * @param {Element} scope - The rendered scope to search within.
+ * @param {Array<{path: string, value: string}>} imageLeaves - The collected
+ *   src leaves.
+ * @param {Element[]} [exclude] - Containers whose contents are off-limits.
+ */
+function tagImagesByValue(scope, imageLeaves, exclude = []) {
+  const basename = (v) => v.split('/').pop();
+  const counts = new Map();
+  for (const leaf of imageLeaves) {
+    counts.set(basename(leaf.value), (counts.get(basename(leaf.value)) || 0) + 1);
+  }
+  for (const leaf of imageLeaves) {
+    const name = basename(leaf.value);
+    if (!name || counts.get(name) !== 1) {
+      continue;
+    }
+    const matches = Array.from(scope.querySelectorAll('img')).filter((img) => {
+      if (img.dataset.fieldImage || exclude.some((c) => c.contains(img))) {
+        return false;
+      }
+      return basename(img.getAttribute('src') || '') === name;
+    });
+    if (matches.length === 1) {
+      matches[0].dataset.fieldImage = leaf.path;
+    }
+  }
 }
 
 /**
@@ -707,21 +752,27 @@ function wireInlineEditing(frame) {
     el.title = 'Click to edit in the Markdown editor';
     el.addEventListener('click', () => openProseEditor(el));
   }
+
+  for (const el of doc.querySelectorAll('[data-field-image]')) {
+    el.title = 'Click to choose a replacement image';
+    el.addEventListener('click', () => openImagePicker(el));
+  }
 }
 
 /**
  * Finds the form control that backs a preview element, matching on the
  * section index (nearest data-section-index ancestor) and the field path.
  * @param {Element} el - The edited element in the preview frame.
+ * @param {string} [attr] - The attribute carrying the field path.
  * @return {HTMLElement|null} The form input/textarea, or null if not found.
  */
-function formControlFor(el) {
+function formControlFor(el, attr = 'data-field') {
   const wrap = el.closest('[data-section-index]');
   if (!wrap) {
     return null;
   }
   const index = wrap.getAttribute('data-section-index');
-  const path = el.getAttribute('data-field');
+  const path = el.getAttribute(attr);
   return document.querySelector(`#sections-list [data-section-index="${index}"] [data-field-path="${path}"]`);
 }
 
@@ -752,6 +803,21 @@ function openProseEditor(el) {
   const expandBtn = textarea && textarea.parentElement && textarea.parentElement.querySelector('button');
   if (expandBtn) {
     expandBtn.click();
+  }
+}
+
+/**
+ * Opens the image picker for a rendered image by triggering its form field's
+ * Choose-image button. The picker stores the processed file's name through
+ * the field's own handler, so the edit flows through the usual pipeline.
+ * @param {Element} el - The clicked image in the preview frame.
+ */
+function openImagePicker(el) {
+  const input = formControlFor(el, 'data-field-image');
+  const group = input && input.closest('.section-image-field');
+  const chooseBtn = group && group.querySelector('.section-image-picker button');
+  if (chooseBtn) {
+    chooseBtn.click();
   }
 }
 

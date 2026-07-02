@@ -231,10 +231,15 @@ shared data files (blurbs, pricing tables, logo lists, accordions) show that
 data read-only — those lists live outside the page, so the page editor can't
 change them.
 
+Images edit in place too: click an image on the page and its file picker
+opens — pick the replacement and the page re-renders with it. This works for
+images inside slides and cards as well as a section's own image.
+
 Two fields that hold exactly the same text are left alone rather than
 guessed at: if a title and a subtitle both say "Welcome", neither edits in
-place until they differ. Edit one of them in **Page setup** first and both
-become clickable.
+place until they differ (the same applies to two fields using the identical
+image file). Edit one of them in **Page setup** first and both become
+clickable.
 
 This edits text that is already there; adding a field that's currently empty, or
 anything structural (adding, reordering, or removing sections, choosing images),
@@ -258,7 +263,8 @@ draft or publish as usual.
 
 ## Images
 
-Pick an image with the **Choose image** button on an Image section.
+Pick an image with the **Choose image** button on an image field in
+**Page setup**, or just click the image on the rendered page.
 The file can come from anywhere — your desktop, downloads, wherever. The
 editor stores a copy in your browser and, on publish, commits it to the
 site alongside the post at `src/assets/images/blog/<slug>/<filename>`.

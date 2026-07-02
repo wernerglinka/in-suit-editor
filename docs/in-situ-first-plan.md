@@ -97,10 +97,17 @@ in place and round-trip through their form controls; the markdown overlay
 opens per-slide prose; the pathological all-sections page produces zero
 mis-tags.
 
+**Done — images.** `src` leaves are collected alongside text and matched by
+filename against rendered `<img>` elements (`data-field-image`), same
+never-guess rules (a filename two fields in scope share tags nothing).
+Clicking a tagged image triggers its form field's Choose-image button, so
+the upload flows through the existing image pipeline. Verified: slide
+images, a testimonial portrait, and hero-slider background images tag with
+correct paths and the click reaches the file input; the all-sections page
+(every image the same file) tags only per-scope-unique ones, all correctly.
+
 Remaining Phase 2 work:
 
-- Images: click a rendered image opens the existing image picker for that
-  field (reuse the section card's image control).
 - Per-section hover toolbar in the frame: an "Open section settings" button
   that expands the drawer scrolled to that section's card — the bridge to
   everything inline editing can't express (including same-valued fields,
