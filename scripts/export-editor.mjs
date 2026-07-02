@@ -32,7 +32,7 @@ const FILES = [...MANIFEST, ...SCRIPTS];
 // Consumer-facing docs maintained in this fixture and copied into the package
 // repo on export. Package-authored docs (e.g. docs/theory-of-operations.md) are
 // deliberately not listed here, so the export never overwrites them.
-const CONSUMER_DOCS = ['docs/editor-guide.md', 'docs/validation.md'];
+const CONSUMER_DOCS = ['docs/editor-guide.md', 'docs/validation.md', 'docs/security-model.md'];
 const PKG_NAME = '@wernerglinka/in-situ-editor';
 
 function fail(message) {
