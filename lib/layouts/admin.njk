@@ -102,8 +102,10 @@
       if (isAdmin) {
         revealEditor();
       } else {
+        // Clear the inline display:none the markup ships with (it prevents a
+        // flash before this gate runs); the stylesheet owns the layout.
         const prompt = document.getElementById('admin-signin-prompt');
-        if (prompt) prompt.style.display = 'block';
+        if (prompt) prompt.style.removeProperty('display');
 
         // The widget script is deferred, so wire up after load. With the
         // editor dormant, this gate owns widget.init(): listeners first,
