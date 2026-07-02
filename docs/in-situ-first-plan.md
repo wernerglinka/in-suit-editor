@@ -56,32 +56,55 @@ Verified under `netlify dev`: open-from-site lands on the Page view, an
 inline title edit persists to the draft's sections, view switching and
 persistence work, backend-down keeps the form.
 
-**Next session (user-reported):** several section components cannot be
-edited in Page view. Expected cause, from the review: `annotateInlineFields`
-(editor-logic.js) only tags section-level `.title`, `.lead-in`,
-`.sub-title`, `.prose`, `.caption`, and `.ctas a`, guarded by the section's
-own values — components whose text lives in nested repeatable items
-(slider, accordion, columns, blurbs, flip cards…) or under other class
-names get no tags, so nothing on them is clickable. That is exactly the
-Phase 2 coverage work below; verify against the actual components before
-assuming no additional cause.
-
 ## Phase 2 — widen inline coverage
 
 Goal: an editor working only on the page can reach everything that is
 visible on the page.
 
-- Nested repeatable items (slides, accordion items, blurbs, list items):
-  extend `annotateInlineFields` to walk array-valued section fields and
-  match per-item containers in DOM order, the same way sections are matched
-  to wrappers today. Field paths become `slides.2.text.title` etc.; the
-  form-renderer already renders controls with those `data-field-path`s, so
-  `commitInlineEdit` works unchanged.
+**Done — nested repeatable items and custom markup.** The user-reported
+"several section components cannot be edited in Page view" was the expected
+annotation-coverage gap. `annotateInlineFields` now runs three passes per
+section, most precisely scoped first:
+
+1. *Items*: every array-of-objects field (recursing through groups, so
+   `stats.items` counts) is matched to its rendered per-item containers — an
+   element whose children repeat (same count, same tag) and where each child
+   holds the majority of its item's rendered strings. Inside each container,
+   plain string fields are matched **by value** (the element whose text
+   equals the field's value), which needs no knowledge of component class
+   names, so custom markup (stat values, timeline years, a testimonial's
+   quotee) works the same as the shared text partial. Prose and ctas can't
+   value-match; they use the partials' classes, guarded to exactly one
+   candidate per item. No containers matched → value-match in the parent
+   scope (covers a column's unwrapped blocks); still ambiguous → skip.
+2. *Section class pass* (the original `.title`/`.lead-in`/… tagging), now
+   skipping everything the items claimed — this also fixed a Phase 1 bug
+   where a slider section holding `text.title` it never renders stole slide
+   0's title element for the section-level path.
+3. *Section value pass*: the section's own remaining strings, value-matched
+   (testimonial, artwork-style custom markup).
+
+Never-mis-tag guards throughout: a value two fields share tags nothing
+(rendered text can't say which field owns it), only an unambiguous innermost
+match tags, and interactive elements / svg are excluded. Data-driven lists
+(blurbs, pricing tiers, accordions) hold no items in the section values, so
+they stay read-only by construction. `src/qa-inline-editing.md` is the QA
+fixture — nested sections with realistic distinct values (the all-sections
+QA page reuses "Sample text" everywhere, which correctly tags nothing).
+Verified under `netlify dev`: slider/hero-slider slides, stats, steps,
+timeline, flip cards front+back, testimonial, columns block titles all edit
+in place and round-trip through their form controls; the markdown overlay
+opens per-slide prose; the pathological all-sections page produces zero
+mis-tags.
+
+Remaining Phase 2 work:
+
 - Images: click a rendered image opens the existing image picker for that
   field (reuse the section card's image control).
 - Per-section hover toolbar in the frame: an "Open section settings" button
   that expands the drawer scrolled to that section's card — the bridge to
-  everything inline editing can't express.
+  everything inline editing can't express (including same-valued fields,
+  which inline editing skips as ambiguous).
 - Keep the manifests/`components-schema.json` as the single source: no
   editor-specific annotations in library components. Where a component's
   markup genuinely can't be matched generically, skip it and rely on the

@@ -215,13 +215,26 @@ is localhost-only — it never happens on the deployed site.
 ## Editing on the page
 
 In the rendered view you can edit a section's text straight on the page —
-this is the editor's default face for an existing sections page. Hover a
-title, lead-in, subtitle, image caption, or call-to-action button label and it
-highlights; click to place the cursor, type, and click away (or press Enter) to
-commit. This works for slider slides too, and clicking a button in the preview
-edits its label rather than following the link. The change flows to the matching form field, so the two stay in step
-and it saves like any other edit. Prose is Markdown, so clicking a prose block
-opens the Markdown editor overlay rather than editing in place.
+this is the editor's default face for an existing sections page. Hover a piece
+of text and it highlights; click to place the cursor, type, and click away (or
+press Enter) to commit. Clicking a button in the preview edits its label
+rather than following the link. The change flows to the matching form field,
+so the two stay in step and it saves like any other edit. Prose is Markdown,
+so clicking a prose block opens the Markdown editor overlay rather than
+editing in place.
+
+This reaches inside repeating content too: a slider's or hero slider's
+slides, stat values and labels, step and timeline entries, flip cards (front
+and back), and a testimonial's quotee all edit in place, each piece flowing
+back to its own form field. Sections that pull their items from the site's
+shared data files (blurbs, pricing tables, logo lists, accordions) show that
+data read-only — those lists live outside the page, so the page editor can't
+change them.
+
+Two fields that hold exactly the same text are left alone rather than
+guessed at: if a title and a subtitle both say "Welcome", neither edits in
+place until they differ. Edit one of them in **Page setup** first and both
+become clickable.
 
 This edits text that is already there; adding a field that's currently empty, or
 anything structural (adding, reordering, or removing sections, choosing images),
