@@ -8,8 +8,20 @@ body {
   color: var(--color-text);
 }
 
+#admin-signin-prompt {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+
+  p {
+    margin-bottom: 2rem;
+  }
+}
+
 h1 {
   text-align: center;
+  margin-bottom: 3rem;
 }
 
 /* 
