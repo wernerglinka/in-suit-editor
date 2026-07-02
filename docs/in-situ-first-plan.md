@@ -34,26 +34,37 @@ annotation so nested items' fields aren't tagged as section-level ones.
 
 Goal: opening an existing page lands the editor on the page, not the forms.
 
-Implemented in `editing-surface.js` (the pane controller), with the toolbar
-lifted out of the form column to span the editor and carry the document
-actions. Verified end to end under `netlify dev`: a sections page opened
-from the site lands as the rendered page with Page setup closed, an inline
-title edit persists to the draft's section model, a new draft opens with
-Page setup showing, and with the render backend unreachable the form stays
-open (pre-existing behavior).
+Shipped, after user feedback reshaped the layout twice:
 
-- Rework the layout in `admin.njk` + `create-post.js` (`initPaneToggles`):
-  the preview pane becomes the main column ("Page"); the form column
-  becomes a right-hand drawer ("Page setup"), collapsed by default when the
-  draft has sections and the render backend probe succeeds.
-- Rename the toggles for editors: "Edit on page" / "Page setup". Persist the
-  choice per browser as today.
-- New draft and content-mode (simple page) drafts open with the drawer
-  expanded — nothing to click on an empty page.
-- Fallback: when `probeRenderBackend()` fails, behave exactly as today
-  (forms + YAML). No new failure modes.
-- Deliverable check: open an existing post from the site, retitle it on the
-  page, publish. No form visible at any point.
+- `editing-surface.js` owns the surfaces. **Page setup** and **Page** are a
+  two-way view switch (exactly one shows); **Drafts** toggles the sidebar
+  independently. A user-picked view persists per browser
+  (`editor-main-view`) and wins over the default from then on.
+- Default per draft load: sections draft + render backend reachable →
+  Page view; new draft, simple Markdown page, or backend down → Page setup
+  (pre-existing behavior preserved as the fallback).
+- The document actions (Copy Markdown, Save, Publish) are a full-width bar
+  at the bottom of `.editor-container`, sticky at the viewport bottom, so
+  they are visible in both views. The toolbar row above the panes holds
+  only the three view/panel buttons.
+- The Markdown overlay (shared by inline prose clicks and the form's
+  Expand buttons) was rendering empty: EasyMDE/CodeMirror 5 collapses to
+  22px inside a flex column. The dialog body is now a plain scroll region
+  and `.CodeMirror` keeps native sizing (`min-height: 55vh`).
+
+Verified under `netlify dev`: open-from-site lands on the Page view, an
+inline title edit persists to the draft's sections, view switching and
+persistence work, backend-down keeps the form.
+
+**Next session (user-reported):** several section components cannot be
+edited in Page view. Expected cause, from the review: `annotateInlineFields`
+(editor-logic.js) only tags section-level `.title`, `.lead-in`,
+`.sub-title`, `.prose`, `.caption`, and `.ctas a`, guarded by the section's
+own values — components whose text lives in nested repeatable items
+(slider, accordion, columns, blurbs, flip cards…) or under other class
+names get no tags, so nothing on them is clickable. That is exactly the
+Phase 2 coverage work below; verify against the actual components before
+assuming no additional cause.
 
 ## Phase 2 — widen inline coverage
 
