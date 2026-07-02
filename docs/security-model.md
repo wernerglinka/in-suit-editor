@@ -2,7 +2,9 @@
 
 How the in-situ editor is secured, what each layer is for, and which parts
 are configuration you maintain in Netlify and GitHub rather than code in
-this repo. The shape of it:
+this repo. This file is the *why*; the step-by-step *how* (dashboard click
+paths, invite flow, rotation procedures, troubleshooting) is
+`docs/netlify-github-setup.md`. The shape of it:
 
 > Obscurity for discovery, sign-in for the surface, JWT plus input caps in
 > the Functions for the boundary, PR review plus branch protection for the
