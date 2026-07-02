@@ -46,6 +46,15 @@ Netlify Identity session exists. The `?admin=true` URL flag reveals the
 editor **on localhost only** (plain dev servers don't proxy Identity); the
 deployed site ignores it.
 
+The editor is dormant, not just hidden: its markup ships inside an inert
+`<template>` element and its JavaScript modules are not loaded statically.
+A signed-out visitor's page runs the sign-in gate and the Identity widget,
+nothing else — no IndexedDB, no data fetches, no editor code. On sign-in
+(or the localhost flag) the gate moves the template content into the DOM
+and dynamic-imports the editor. The markup is still readable in the page
+source — unavoidable on a static site, and harmless, since the source is
+public anyway and the boundary is server-side.
+
 If the URL is ever considered compromised, rotate it: rename the page's
 directory (`src/admin/` → `src/<anything>/`) and redeploy. Nothing else
 references the path — the editor's JavaScript, the Functions, and the
@@ -103,6 +112,17 @@ small; maintain them alongside the site:
   contents and pull-requests write only, with an expiry. Store it as a
   Netlify environment variable, rotate it on a schedule and whenever anyone
   leaves.
+
+## Future option: a server-side gate on the page itself
+
+On Netlify's paid tiers, Identity's JWT can ride as an `nf_jwt` cookie and
+`_redirects` rules can carry role conditions — the CDN then refuses to
+serve a protected path at all without a valid token. That upgrades the
+admin page from "dark and dormant" to genuinely undeliverable to
+strangers: a public sign-in page, a redirect on the widget's `login`
+event, and an editor path the CDN itself withholds. If this site ever
+moves to such a tier, that is the first change to make; nothing in the
+current model conflicts with it.
 
 ## What is deliberately not done
 

@@ -24,7 +24,13 @@ seo:
   <button type="button" id="admin-signin-prompt-btn" class="button">Sign in</button>
 </div>
 
-<div class="admin-only" style="display: none">
+<!-- The editor lives inside an inert <template>: browsers neither render nor
+     execute its content, so a signed-out visitor's page contains a working
+     sign-in form and a dormant blueprint, nothing running. The reveal script
+     in admin.njk moves the content into the DOM and boots the editor modules
+     only once a session exists (or the localhost dev flag is set). -->
+<template id="admin-editor-template">
+<div class="admin-only">
   <div class="editor-container">
     <div class="editor-toolbar">
       <button
@@ -505,3 +511,4 @@ seo:
     <textarea id="markdown-editor-host"></textarea>
   </div>
 </dialog>
+</template>

@@ -75,10 +75,28 @@
       }
 
       const isAdmin = isLocalDev && (adminFromUrl || adminFromStorage);
+
+      // The editor ships inside an inert <template> and its modules are not
+      // loaded statically: a signed-out visitor's page runs nothing but this
+      // gate and the Identity widget. Revealing moves the template content
+      // into the DOM, then boots the editor — in that order, because the
+      // editor modules look their elements up at import time. The boot waits
+      // for DOMContentLoaded so the deferred Identity widget script has run
+      // before the editor wires it up.
+      let editorBooted = false;
       const revealEditor = () => {
-        document.querySelectorAll('.admin-only').forEach((el) => (el.style.display = 'initial'));
         const prompt = document.getElementById('admin-signin-prompt');
         if (prompt) prompt.style.display = 'none';
+        if (editorBooted) return;
+        editorBooted = true;
+        const tpl = document.getElementById('admin-editor-template');
+        if (tpl) tpl.parentNode.insertBefore(tpl.content, tpl);
+        const boot = () => import('/assets/js/editor/create-post.js');
+        if (document.readyState === 'loading') {
+          document.addEventListener('DOMContentLoaded', boot);
+        } else {
+          boot();
+        }
       };
 
       if (isAdmin) {
@@ -87,13 +105,14 @@
         const prompt = document.getElementById('admin-signin-prompt');
         if (prompt) prompt.style.display = 'block';
 
-        // The widget script is deferred, so wire up after load. The editor
-        // module calls netlifyIdentity.init(); by load time currentUser()
-        // reads the cached session, so a missed 'init' event doesn't matter.
+        // The widget script is deferred, so wire up after load. With the
+        // editor dormant, this gate owns widget.init(): listeners first,
+        // then init, so a cached session's 'init' event reveals the editor
+        // on a return visit. (The editor's own initIdentity re-inits the
+        // widget after boot; the widget tolerates that.)
         window.addEventListener('load', () => {
           const widget = window.netlifyIdentity;
           if (!widget) return;
-          if (widget.currentUser && widget.currentUser()) revealEditor();
           widget.on('init', (user) => {
             if (user) revealEditor();
           });
@@ -103,6 +122,7 @@
           });
           const btn = document.getElementById('admin-signin-prompt-btn');
           if (btn) btn.onclick = () => widget.open('login');
+          widget.init();
         });
       }
     </script>
@@ -118,6 +138,7 @@
          the admin body class, so this does not add page transitions here. -->
     <script src="/assets/main.js"></script>
 
-    <script type="module" src="/assets/js/editor/create-post.js"></script>
+    <!-- No static editor script: the reveal gate above dynamic-imports
+         create-post.js only once a session exists (or on localhost). -->
   </body>
 </html>
