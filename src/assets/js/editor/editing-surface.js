@@ -1,32 +1,26 @@
 /**
- * The editing-surface controller. The editor has three panes — the drafts
- * sidebar, the page-setup form column, and the rendered page — and this
- * module owns which of them show.
+ * The editing-surface controller. The editor's main area shows one of two
+ * views — the rendered **Page** or the **Page setup** form — and the two
+ * toolbar buttons switch between them (they are a segmented control, not
+ * independent hide-toggles). The **Drafts** sidebar toggles on its own,
+ * alongside whichever main view is showing.
  *
- * The default is in-situ-first: a draft that has sections opens as the
- * rendered page with the form column closed, because for a content edit the
- * page itself is the least intimidating surface. The form column is the
- * structural/metadata surface ("Page setup") and stays the default for a
- * draft with nothing to render (a new draft, or a simple Markdown page).
- * A toggle the user clicks is persisted and wins over the default from then
- * on; the default itself is never persisted.
- *
- * When the render backend is unreachable the page pane can't render, so the
- * default never closes the form; the editor behaves exactly as it did before
- * in-situ-first.
+ * The default is in-situ-first: a draft that has sections whose page can
+ * render opens on the Page view, because for a content edit the page itself
+ * is the least intimidating surface. Anything else — a new draft, a simple
+ * Markdown page, or an unreachable render backend — opens on Page setup.
+ * A view the user picks is persisted and wins over the default from then on;
+ * the default itself is never persisted.
  */
 
 import { probeRenderBackend } from './editor-logic.js';
 
-/** One entry per collapsible pane: its toggle button, the container class
- * that hides it, and the localStorage key holding the user's explicit choice. */
-const PANES = [
-  { id: 'toggle-sidebar-btn', cls: 'no-sidebar', key: 'editor-hide-sidebar' },
-  { id: 'toggle-form-btn', cls: 'no-form', key: 'editor-hide-form' },
-  { id: 'toggle-preview-btn', cls: 'no-preview', key: 'editor-hide-preview' }
-];
+/** Which main view is showing; persisted once the user chooses. */
+const VIEW_KEY = 'editor-main-view'; // 'page' | 'setup'
+/** Whether the drafts sidebar is hidden; persisted on toggle. */
+const SIDEBAR_KEY = 'editor-hide-sidebar';
 
-/** The render-backend probe, shared by every default decision. */
+/** The render-backend probe, shared by the default decision. */
 let backendProbe = null;
 
 /** @return {Element|null} The editor's pane container. */
@@ -35,92 +29,98 @@ function container() {
 }
 
 /**
- * Shows or hides a pane, keeping the toggle button's pressed state in step.
- * @param {Object} pane - A PANES entry.
- * @param {boolean} hidden - Whether the pane should be hidden.
+ * Shows one main view and hides the other, syncing the two buttons' pressed
+ * state. `no-form` hides the form (Page view); `no-preview` hides the page
+ * (Page setup view); exactly one is ever set.
+ * @param {'page'|'setup'} view - The view to show.
  * @param {boolean} persist - Whether to record this as the user's choice.
  */
-function setPane(pane, hidden, persist) {
+function applyView(view, persist) {
   const c = container();
   if (!c) {
     return;
   }
-  c.classList.toggle(pane.cls, hidden);
-  const btn = document.getElementById(pane.id);
+  const page = view === 'page';
+  c.classList.toggle('no-form', page);
+  c.classList.toggle('no-preview', !page);
+  const setupBtn = document.getElementById('toggle-form-btn');
+  const pageBtn = document.getElementById('toggle-preview-btn');
+  if (setupBtn) {
+    setupBtn.setAttribute('aria-pressed', String(!page));
+  }
+  if (pageBtn) {
+    pageBtn.setAttribute('aria-pressed', String(page));
+  }
+  if (persist) {
+    localStorage.setItem(VIEW_KEY, view);
+  }
+}
+
+/**
+ * Shows or hides the drafts sidebar.
+ * @param {boolean} hidden - Whether the sidebar should be hidden.
+ * @param {boolean} persist - Whether to record the choice.
+ */
+function applySidebar(hidden, persist) {
+  const c = container();
+  if (!c) {
+    return;
+  }
+  c.classList.toggle('no-sidebar', hidden);
+  const btn = document.getElementById('toggle-sidebar-btn');
   if (btn) {
     btn.setAttribute('aria-pressed', String(!hidden));
   }
   if (persist) {
-    localStorage.setItem(pane.key, String(hidden));
+    localStorage.setItem(SIDEBAR_KEY, String(hidden));
   }
 }
 
-/** @param {Object} pane - A PANES entry. @return {boolean} Whether it is hidden. */
-function isHidden(pane) {
-  const c = container();
-  return Boolean(c && c.classList.contains(pane.cls));
-}
-
 /**
- * Wires the pane toggles. Restores each pane from the user's saved choice,
- * and guards the form/page pair so the two can never both be closed (the
- * editor would be empty): closing one while the other is closed reopens the
- * other.
+ * Wires the toolbar controls: Drafts toggles the sidebar; Page setup and Page
+ * switch the main view. Restores the saved sidebar state and the saved view
+ * (a draft load may override the view via applyDefaultSurface).
  */
 export function initEditingSurface() {
   if (!container()) {
     return;
   }
   backendProbe = probeRenderBackend();
+  applySidebar(localStorage.getItem(SIDEBAR_KEY) === 'true', false);
+  applyView(localStorage.getItem(VIEW_KEY) === 'page' ? 'page' : 'setup', false);
 
-  const form = PANES[1];
-  const page = PANES[2];
-  for (const pane of PANES) {
-    setPane(pane, localStorage.getItem(pane.key) === 'true', false);
-    const btn = document.getElementById(pane.id);
-    if (!btn) {
-      continue;
-    }
-    btn.onclick = () => {
-      const hiding = !isHidden(pane);
-      setPane(pane, hiding, true);
-      // Never leave both main panes closed.
-      if (hiding && pane === form && isHidden(page)) {
-        setPane(page, false, true);
-      }
-      if (hiding && pane === page && isHidden(form)) {
-        setPane(form, false, true);
-      }
-    };
+  const sidebarBtn = document.getElementById('toggle-sidebar-btn');
+  if (sidebarBtn) {
+    sidebarBtn.onclick = () => applySidebar(!container().classList.contains('no-sidebar'), true);
   }
-  // A saved state could have both closed (older versions persisted the panes
-  // independently); reopen the form so the editor is never empty.
-  if (isHidden(form) && isHidden(page)) {
-    setPane(form, false, false);
+  const setupBtn = document.getElementById('toggle-form-btn');
+  if (setupBtn) {
+    setupBtn.onclick = () => applyView('setup', true);
+  }
+  const pageBtn = document.getElementById('toggle-preview-btn');
+  if (pageBtn) {
+    pageBtn.onclick = () => applyView('page', true);
   }
 }
 
 /**
- * Applies the default surface for a freshly loaded draft. Respects an
- * explicit user choice for the form pane; otherwise closes the form for a
- * sections draft whose page can actually render, and opens it for anything
- * else (new draft, simple Markdown page, backend unreachable).
+ * Applies the default view for a freshly loaded draft, unless the user has
+ * already chosen one. Opens on the Page view for a sections draft whose page
+ * can render; opens on Page setup for anything else.
  * @param {Object} draft - The loaded draft.
  * @return {Promise<void>}
  */
 export async function applyDefaultSurface(draft) {
-  if (!container() || localStorage.getItem('editor-hide-form') !== null) {
+  if (!container() || localStorage.getItem(VIEW_KEY) !== null) {
     return;
   }
-  const form = PANES[1];
-  const page = PANES[2];
   const hasSections =
     draft && draft.bodyMode !== 'content' && Array.isArray(draft.sections) && draft.sections.length > 0;
   const backendUp = backendProbe ? await backendProbe : false;
-  // The user may have toggled (persisting a choice) while the probe was
+  // The user may have picked a view (persisting a choice) while the probe was
   // in flight; their choice wins.
-  if (localStorage.getItem('editor-hide-form') !== null) {
+  if (localStorage.getItem(VIEW_KEY) !== null) {
     return;
   }
-  setPane(form, hasSections && backendUp && !isHidden(page), false);
+  applyView(hasSections && backendUp ? 'page' : 'setup', false);
 }

@@ -1270,24 +1270,23 @@ dialog p {
     }
   }
 
+  /*
+    The body is the scroll region. EasyMDE (CodeMirror 5) sizes itself with its
+    own auto-height model — a min-height on .CodeMirror-scroll, growing with
+    content — and breaks if placed in a flex column: the flex context defeats
+    CodeMirror's height measurement and it collapses to a single line. So the
+    body stays a normal block that scrolls, and the editor keeps its native
+    layout rather than being stretched by flex.
+  */
   .markdown-editor-body {
     flex: 1;
     min-height: 0;
-    display: flex;
-    flex-direction: column;
+    overflow-y: auto;
     padding: 1rem 1.25rem 1.25rem;
   }
 
-  .EasyMDEContainer {
-    flex: 1;
-    min-height: 0;
-    display: flex;
-    flex-direction: column;
-  }
-
   .CodeMirror {
-    flex: 1;
-    min-height: 0;
+    min-height: 55vh;
   }
 
   /* 

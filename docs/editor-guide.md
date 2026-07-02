@@ -132,18 +132,20 @@ anywhere on a section's header to open or close its form (the ↑/↓/✕
 controls in the header act on the section without toggling it); a section
 you just added opens automatically so you can fill it in.
 
-The editor is three panels, each with its own toggle in the toolbar at the
-top: **Drafts** (the list on the left), **Page setup** (this form), and
-**Page** (the rendered page). The document actions — Copy Markdown, Save,
-and Publish — live in a bar along the bottom of the editor that stays on
-screen as you scroll, whichever panels are open. A page that already has
-sections opens as just the page, with Page
-setup closed: for reading and text edits the page itself is the whole
-editor, and you open **Page setup** only for structure or metadata. A new
-draft (or a simple Markdown page) opens with Page setup showing, since an
-empty page gives you nothing to click. Once you toggle a panel yourself the
-editor remembers your choice per browser instead of choosing for you; the
-form and the page can never both be closed at once.
+The toolbar at the top holds three buttons. **Page setup** and **Page**
+switch the main area between two views: **Page setup** shows this form
+(metadata, sections, settings), and **Page** shows the rendered page you
+edit on directly — only one is up at a time. **Drafts** is separate: it
+shows or hides the list on the left alongside whichever view you are in.
+The document actions — Copy Markdown, Save, and Publish — live in a bar
+along the bottom of the editor that stays on screen as you scroll.
+
+A page that already has sections opens on the **Page** view: for reading
+and text edits the page itself is the whole editor, and you switch to
+**Page setup** for structure or metadata. A new draft (or a simple
+Markdown page) opens on **Page setup**, since an empty page gives you
+nothing to click. Once you pick a view yourself the editor remembers your
+choice per browser instead of choosing for you.
 
 Every section generates its form from the component library's schema rather
 than from hand-written editor code, which is why each exposes the full set of
