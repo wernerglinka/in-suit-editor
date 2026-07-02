@@ -20,6 +20,43 @@ seo:
 
 <div class="admin-only" style="display: none">
   <div class="editor-container">
+    <div class="editor-toolbar">
+      <button
+        type="button"
+        id="toggle-sidebar-btn"
+        class="pane-toggle"
+        aria-pressed="true"
+        title="Show or hide the drafts panel"
+      >
+        Drafts
+      </button>
+      <button
+        type="button"
+        id="toggle-form-btn"
+        class="pane-toggle"
+        aria-pressed="true"
+        title="Show or hide the page setup panel (metadata, sections, settings)"
+      >
+        Page setup
+      </button>
+      <button
+        type="button"
+        id="toggle-preview-btn"
+        class="pane-toggle"
+        aria-pressed="true"
+        title="Show or hide the page panel"
+      >
+        Page
+      </button>
+      <div class="editor-actions">
+        <button id="copy-btn" class="button secondary">Copy Markdown</button>
+        <button id="download-btn" class="button secondary">Save (.zip)</button>
+        <button id="publish-pr-btn" class="button" disabled title="Sign in to publish">Publish (as PR)</button>
+        <button id="publish-direct-btn" class="button" style="display: none" disabled title="Admins only">
+          Publish directly to main
+        </button>
+      </div>
+    </div>
     <aside class="editor-sidebar">
       <header class="sidebar-header">
         <h2>Drafts</h2>
@@ -94,26 +131,6 @@ seo:
     </aside>
 
     <div class="editor-main">
-      <div class="editor-toolbar">
-        <button
-          type="button"
-          id="toggle-sidebar-btn"
-          class="pane-toggle"
-          aria-pressed="true"
-          title="Show or hide the drafts panel"
-        >
-          Drafts
-        </button>
-        <button
-          type="button"
-          id="toggle-preview-btn"
-          class="pane-toggle"
-          aria-pressed="true"
-          title="Show or hide the preview panel"
-        >
-          Preview
-        </button>
-      </div>
       <form id="post-form">
         <div class="form-group">
           <label for="post-title">Title</label>
@@ -417,15 +434,6 @@ seo:
           </div>
         </div>
       </form>
-
-      <div class="editor-actions">
-        <button id="copy-btn" class="button secondary">Copy Markdown</button>
-        <button id="download-btn" class="button secondary">Save (.zip)</button>
-        <button id="publish-pr-btn" class="button" disabled title="Sign in to publish">Publish (as PR)</button>
-        <button id="publish-direct-btn" class="button" style="display: none" disabled title="Admins only">
-          Publish directly to main
-        </button>
-      </div>
     </div>
 
     <div class="editor-preview">

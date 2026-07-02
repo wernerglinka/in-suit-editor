@@ -15,6 +15,7 @@ import { openFromSite } from '../drafts/open-from-site.js';
 import { initEditorActions } from './editor-actions.js';
 import { initEditor } from './editor-init.js';
 import { initSectionBuilder } from './section-builder.js';
+import { initEditingSurface } from './editing-surface.js';
 import { attachMarkdownOverlay } from './markdown-overlay.js';
 import { sync, renderList, loadDraft, applyPageType, applyBodyMode } from './editor-ui.js';
 
@@ -105,36 +106,7 @@ if (ui.openSiteBtn) {
   ui.openSiteBtn.onclick = () => openFromSite(ui, doLoadDraft, () => renderList(ui, doLoadDraft));
 }
 
-/**
- * Collapsible side panes for distraction-free editing. Each toggle hides its
- * pane (the grid reflows the remaining columns) and remembers the choice per
- * browser so it survives reloads.
- */
-function initPaneToggles() {
-  const container = document.querySelector('.editor-container');
-  if (!container) {
-    return;
-  }
-  const panes = [
-    { btn: document.getElementById('toggle-sidebar-btn'), cls: 'no-sidebar', key: 'editor-hide-sidebar' },
-    { btn: document.getElementById('toggle-preview-btn'), cls: 'no-preview', key: 'editor-hide-preview' }
-  ];
-  for (const { btn, cls, key } of panes) {
-    if (!btn) {
-      continue;
-    }
-    const collapsed = localStorage.getItem(key) === 'true';
-    container.classList.toggle(cls, collapsed);
-    btn.setAttribute('aria-pressed', String(!collapsed));
-    btn.onclick = () => {
-      const nowCollapsed = !container.classList.contains(cls);
-      container.classList.toggle(cls, nowCollapsed);
-      btn.setAttribute('aria-pressed', String(!nowCollapsed));
-      localStorage.setItem(key, String(nowCollapsed));
-    };
-  }
-}
-initPaneToggles();
+initEditingSurface();
 
 /**
  * Switches the preview pane between the rendered iframe and the YAML view.

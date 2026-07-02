@@ -6,6 +6,7 @@
 import { drafts, updateDraftData, setCurrentDraftId } from '../drafts/draft-manager.js';
 import { updatePreview } from './editor-logic.js';
 import { loadSections } from './section-builder.js';
+import { applyDefaultSurface } from './editing-surface.js';
 export { renderList } from './editor-list-renderer.js';
 
 /**
@@ -165,4 +166,7 @@ export async function loadDraft(id, ui, renderList, tagEditor) {
 
   updatePreview(id, drafts, ui);
   renderList(ui, loadDraft);
+  // In-situ-first: a sections draft opens as the rendered page unless the
+  // user has chosen otherwise (fire-and-forget; it awaits the backend probe).
+  applyDefaultSurface(d);
 }

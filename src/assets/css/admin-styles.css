@@ -27,8 +27,8 @@ body.admin {
 }
 
 .editor-container {
-  display: grid;
-  grid-template-columns: 250px minmax(0, 1fr) minmax(0, 1fr);
+  display: flex;
+  flex-wrap: wrap;
   gap: 2rem;
   /*
     Width constraint moved here from body so the footer can span the viewport;
@@ -37,52 +37,56 @@ body.admin {
   max-width: 90em;
   margin: 2rem auto 5rem;
   /*
-    Center the track group so that when a pane is collapsed the remaining
-     content stays centered rather than pinned to the left. No effect on the
-     default 3-pane layout, whose 1fr tracks leave no free space to distribute.
+    Center the visible panes: when one is collapsed the remaining content
+     stays centered rather than pinned to the left.
   */
   justify-content: center;
 }
 
+.editor-sidebar {
+  flex: 0 0 250px;
+}
+
 .editor-main,
 .editor-preview {
+  flex: 1 1 0;
   min-width: 0;
   max-width: 50rem;
 }
 
-/* 
+/*
   Collapsible panes (toggled from the editor toolbar). A collapsed pane is
-   removed from flow so the grid reflows the remaining columns with no empty
-   track or stray gap left behind. 
+   removed from flow so the row reflows the remaining panes with no empty
+   track or stray gap left behind.
 */
 .editor-container.no-sidebar .editor-sidebar,
+.editor-container.no-form .editor-main,
 .editor-container.no-preview .editor-preview {
   display: none;
 }
 
-@media (min-width: 1001px) {
-  /*
-    In a collapsed state, size the flexible tracks to their content max
-     (50rem, matching .editor-main/.editor-preview) instead of 1fr, so the
-     container's justify-content: center can center the visible group.
-  */
-  .editor-container.no-sidebar:not(.no-preview) {
-    grid-template-columns: minmax(0, 50rem) minmax(0, 50rem);
-  }
-  .editor-container.no-preview:not(.no-sidebar) {
-    grid-template-columns: 250px minmax(0, 50rem);
-  }
-  .editor-container.no-sidebar.no-preview {
-    grid-template-columns: minmax(0, 50rem);
-  }
+/*
+  With the page-setup panel closed the rendered page is the editing surface;
+   let it use page-like width instead of the split-view column.
+*/
+.editor-container.no-form .editor-preview {
+  max-width: 72rem;
 }
 
+/* The toolbar is its own full-width row above the panes: pane toggles on the
+   left, the document actions (copy/save/publish) on the right. */
 .editor-toolbar {
+  flex-basis: 100%;
   display: flex;
+  flex-wrap: wrap;
+  align-items: center;
   gap: 0.5rem;
-  justify-content: flex-end;
-  margin-bottom: 1rem;
   border: none;
+}
+
+.editor-toolbar .editor-actions {
+  margin-left: auto;
+  margin-top: 0;
 }
 
 .pane-toggle {
@@ -869,10 +873,11 @@ dialog p {
 
 @media (max-width: 1000px) {
   .editor-container {
-    grid-template-columns: 1fr;
+    flex-direction: column;
     gap: 0;
   }
   .editor-sidebar {
+    flex: none;
     position: static;
     max-height: none;
     border: none;

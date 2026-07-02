@@ -30,9 +30,17 @@ stale load-handler detachment, debounced-preview cancellation on draft
 switch, current-draft guard in `updatePreview`, and shallowest-match field
 annotation so nested items' fields aren't tagged as section-level ones.
 
-## Phase 1 — flip the hierarchy
+## Phase 1 — flip the hierarchy (done)
 
 Goal: opening an existing page lands the editor on the page, not the forms.
+
+Implemented in `editing-surface.js` (the pane controller), with the toolbar
+lifted out of the form column to span the editor and carry the document
+actions. Verified end to end under `netlify dev`: a sections page opened
+from the site lands as the rendered page with Page setup closed, an inline
+title edit persists to the draft's section model, a new draft opens with
+Page setup showing, and with the render backend unreachable the form stays
+open (pre-existing behavior).
 
 - Rework the layout in `admin.njk` + `create-post.js` (`initPaneToggles`):
   the preview pane becomes the main column ("Page"); the form column
