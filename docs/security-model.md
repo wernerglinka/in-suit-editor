@@ -105,13 +105,19 @@ Markdown, and the merge is where it's caught.
 Two GitHub-side settings keep the blast radius of a stolen editor session
 small; maintain them alongside the site:
 
-- **Branch protection on `main`** requiring review, so even the `admin`
-  direct-commit path can be turned off at the repo when wanted, and a
-  compromised account can at worst open PRs you decline.
+- **Branch protection on `main`** requiring review. One honest nuance for a
+  solo-owner repo: the PAT acts as its creator, so if that's the repo admin
+  and administrators are exempted from protection, the token bypasses it
+  too — the protection then guards against accidents, not token theft. The
+  gate that actually limits a compromised *editor account* to PRs is the
+  publish Function's role check. Branch protection gains real teeth when
+  the PAT belongs to a dedicated machine account with no admin rights —
+  the upgrade to make when the project has a second maintainer.
 - **A fine-grained PAT** for the publish Function: single repository,
   contents and pull-requests write only, with an expiry. Store it as a
   Netlify environment variable, rotate it on a schedule and whenever anyone
-  leaves.
+  leaves. Calendar the expiry: when it lapses, publishing fails with errors
+  that look like a bug, not like an expired credential.
 
 ## Future option: a server-side gate on the page itself
 
