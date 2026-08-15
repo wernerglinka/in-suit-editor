@@ -67,9 +67,14 @@
       const adminFromUrl = urlParams.get('admin') === 'true';
       const adminFromStorage = localStorage.getItem('admin') === 'true';
 
+      // Sync the flag back into the URL only during local dev. On the
+      // deployed site the flag is inert, and the redirect it triggers
+      // rewrites the URL before the Identity widget can read tokens out
+      // of the hash (#invite_token=..., #recovery_token=...), silently
+      // eating invite links.
       if (adminFromUrl) {
         localStorage.setItem('admin', 'true');
-      } else if (adminFromStorage) {
+      } else if (adminFromStorage && isLocalDev) {
         urlParams.set('admin', 'true');
         window.location.search = urlParams.toString();
       }
@@ -107,24 +112,22 @@
         const prompt = document.getElementById('admin-signin-prompt');
         if (prompt) prompt.style.removeProperty('display');
 
-        // The widget script is deferred, so wire up after load. With the
-        // editor dormant, this gate owns widget.init(): listeners first,
-        // then init, so a cached session's 'init' event reveals the editor
-        // on a return visit. (The editor's own initIdentity re-inits the
-        // widget after boot; the widget tolerates that.)
+        // The widget auto-inits itself as soon as its (deferred) script
+        // executes, which is before 'load' fires. Never call init() again:
+        // each init() builds a fresh iframe but re-renders against the
+        // previous iframe's Preact root, leaving an open-but-empty modal
+        // (invisible login and invite dialogs). Since the 'init' event has
+        // already fired by the time this runs, read the session directly.
         window.addEventListener('load', () => {
           const widget = window.netlifyIdentity;
           if (!widget) return;
-          widget.on('init', (user) => {
-            if (user) revealEditor();
-          });
           widget.on('login', () => {
             widget.close();
             revealEditor();
           });
           const btn = document.getElementById('admin-signin-prompt-btn');
           if (btn) btn.onclick = () => widget.open('login');
-          widget.init();
+          if (widget.currentUser()) revealEditor();
         });
       }
     </script>

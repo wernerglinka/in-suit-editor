@@ -83,7 +83,6 @@ export function initIdentity(ui) {
     }
   };
 
-  widget.on('init', render);
   widget.on('login', () => {
     widget.close();
     render();
@@ -93,5 +92,9 @@ export function initIdentity(ui) {
   ui.identitySigninBtn.onclick = () => widget.open();
   ui.identitySignoutBtn.onclick = () => widget.logout();
 
-  widget.init();
+  // The widget already init'ed itself when its script loaded; calling
+  // init() again rebuilds its iframe against a stale render root and
+  // blanks the modal. The editor boots after that point, so render
+  // directly from the current session instead of waiting on 'init'.
+  render();
 }

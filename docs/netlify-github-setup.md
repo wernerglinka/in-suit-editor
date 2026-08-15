@@ -91,9 +91,13 @@ UI.
 ## People: inviting, roles, removing
 
 **Invite** from Identity → Users → *Invite users*, one email per editor.
-The recipient clicks the link, sets a password, confirms — done. If a
-tester reports the invite link no longer working, delete the pending user
-and re-invite; the links are short-lived by design.
+The email links to the site root with `#invite_token=...`, but only the
+admin page loads the Identity widget — so the recipient must open the
+token on `/admin/`: take the `#invite_token=...` fragment from the email
+link and append it to `https://<site>/admin/`. The signup dialog pops,
+they set a password, done. If a tester reports the invite link no longer
+working, delete the pending user and re-invite; the links are
+short-lived by design.
 
 **Roles** are set on the user (open the user in the Users list, edit
 roles). There are exactly two meaningful states:
