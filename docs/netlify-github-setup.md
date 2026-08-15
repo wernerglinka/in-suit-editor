@@ -145,7 +145,7 @@ publishing is normally exercised against the deployed test site instead.
 
 ## This deployment (the dev fixture's test site)
 
-Facts as of 2026-07-02 — update this section when they change:
+Facts as of 2026-08-15 — update this section when they change:
 
 - Site: **https://testdit.netlify.app/** (the similarly-named
   `ms2025-structured-content-starter.netlify.app` is the *starter's* demo,
@@ -153,7 +153,7 @@ Facts as of 2026-07-02 — update this section when they change:
 - Repo: `wernerglinka/in-situ-editor-dev` (both deploy source and publish
   target; `GITHUB_REPO` points here).
 - PAT: fine-grained token named `editor-test`, scoped to that one repo,
-  contents + pull requests read/write, **expires 2026-08-13**.
+  contents + pull requests read/write, **expires 2026-11-13**.
 - Identity: invite-only, email confirmation required, no external
   providers. One user: Werner (`admin` role).
 - Verified live 2026-07-02: anonymous preview POST → 401, GET → 405,
